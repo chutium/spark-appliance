@@ -35,6 +35,10 @@ then you will get a spark distribution with EMRFS support, put this package in t
 
 ```
 cd $SPARK_HOME
+mv conf/core-site.xml.zalando conf/core-site.xml
+mv conf/emrfs-default.xml.zalando conf/emrfs-default.xml
+mv conf/spark-env.sh.zalando conf/spark-env.sh
+
 aws s3 cp README.md s3://some-bucket/
 bin/spark-shell --master local[2]
 
@@ -47,6 +51,6 @@ scala> textFile.count
 * spark-submit wrapper with ssh-tunnel
 * spark sql wrapper with ssh-tunnel
 * Appliance to deploy Spark cluster programmatically
-* add Kafka support
+* add Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * add [Cassandra](https://github.com/zalando/stups-cassandra) support
-* add postgres/[spilo](https://github.com/zalando/spilo) support
+* add postgres/[Spilo](https://github.com/zalando/spilo) support
