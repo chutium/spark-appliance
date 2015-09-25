@@ -17,9 +17,11 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, we creat
 
 ## Usage
 
-TBA
+You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER``` to set which daemon will be started.
 
-### Running with Docker as local test
+Notice that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```, because the thrift server is not an external daemon process, it will be running as a spark application and create some executors in the cluster, therefore it will take up resources of the spark cluster as same as other spark applications submitted by ```spark-submit``` script, this may cause your other spark applications can not get enough resource to start when you use a small EC2 instance type like t2-series.
+
+### Running with Docker locally
 
 ```
 sudo docker build -t pierone.example.org/bi/spark:0.1-SNAPSHOT .
@@ -36,10 +38,10 @@ sudo docker run -e START_MASTER="true" \
 
 ### Deploying with Senza
 
-on single node:
+#### Deploying on single node:
 
 ```
-senza create spark.yaml 1 \
+senza create spark.yaml singlenode \
              DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
@@ -49,7 +51,7 @@ senza create spark.yaml 1 \
              StartThriftServer=true
 ```
 
-Cluster mode:
+#### Cluster mode:
 
 ```
 senza create spark.yaml master \
@@ -57,8 +59,7 @@ senza create spark.yaml master \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
-             StartMaster=true \
-             StartThriftServer=true
+             StartMaster=true
 ```
 
 then use ```senza instance spark``` to find the IP of stack spark-master, use this IP within the MasterString, like: ```spark://172.31.xxx.xxx:7077```
@@ -74,7 +75,7 @@ senza create spark.yaml worker \
              ClusterSize=3
 ```
 
-### build distribution package and try it out
+### Build distribution package and try it out
 
 use branch: https://github.com/zalando/spark/tree/branch-1.5-zalando
 
@@ -99,6 +100,9 @@ scala> textFile.count
 
 ## TODOs
 
+* Spark HA with zookeeper
+* Start spark cluster with given hive-site.xml
+* add more start/env variables such as -c (--cores) and -m (--memory)
 * spark-submit wrapper with ssh-tunnel
 * spark sql wrapper with ssh-tunnel
 * Appliance to deploy Spark cluster programmatically
