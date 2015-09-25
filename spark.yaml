@@ -1,0 +1,150 @@
+SenzaInfo:
+  StackName: spark
+  Parameters:
+    - DockerImage:
+        Description: "Docker image path with version tag of Spark"
+    - ApplicationID:
+        Description: "The application ID according to Yourturn/Kio"
+    - MintBucket:
+        Description: "Mint Bucket of buku."
+    - ScalyrKey:
+        Description: "The API key of Scalyr logging service used by Taupage"
+        Default: ""
+    - ClusterSize:
+        Description: "The initial size (number of nodes) for the new Cassandra cluster"
+        Default: "1"
+    - InstanceType:
+        Description: "The instance type for the nodes of cluster"
+        Default: "t2.medium"
+    - ZookeeperStackName:
+        Description: "Which ZooKeeper Stack should be used?"
+        Default: ""
+    - HiveSite:
+        Description: "Which hive-site.xml file should be used?"
+        Default: ""
+    - StartMaster:
+        Description: "Start spark master daemon"
+        Default: ""
+    - StartWorker:
+        Description: "Start spark worker daemon"
+        Default: ""
+    - StartThriftServer:
+        Description: "Start spark thrift server (HiveServer2) daemon"
+        Default: ""
+    - MasterString:
+        Description: "master connection string"
+        Default: ""
+SenzaComponents:
+  - Configuration:
+      Type: Senza::StupsAutoConfiguration
+  - AppServer:
+      Type: Senza::TaupageAutoScalingGroup
+      InstanceType: "{{Arguments.InstanceType}}"
+      AutoScaling:
+        Minimum: "{{Arguments.ClusterSize}}"
+        Maximum: "{{Arguments.ClusterSize}}"
+        MetricType: CPU
+      HealthCheckType: ELB
+      ElasticLoadBalancer: AppLoadBalancer
+      LoadBalancerNames:
+        - Ref: AppLoadBalancer
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            VolumeSize: 200
+            VolumeType: gp2
+      SecurityGroups:
+        - Fn::GetAtt:
+          - SparkSecGroup
+          - GroupId
+      IamRoles:
+        - Ref: SparkRole
+      TaupageConfig:
+        application_id: "{{Arguments.ApplicationID}}"
+        runtime: Docker
+        source: "{{Arguments.DockerImage}}"
+        root: true
+        networking: host
+        mint_bucket: '{{Arguments.MintBucket}}'
+        scalyr_account_key: "{{Arguments.ScalyrKey}}"
+        environment:
+          CLUSTER_SIZE: "{{Arguments.ClusterSize}}"
+          ZOOKEEPER_STACK_NAME: "{{Arguments.ZookeeperStackName}}"
+          HIVE_SITE_XML: "{{Arguments.HiveSite}}"
+          START_MASTER: "{{Arguments.StartMaster}}"
+          START_WORKER: "{{Arguments.StartWorker}}"
+          START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
+          MASTER_STRING: "{{Arguments.MasterString}}"
+Resources:
+  SparkRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: ec2.amazonaws.com
+          Action: sts:AssumeRole
+      Path: /
+      Policies:
+      - PolicyName: AmazonS3MintBucketAccess
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action: "s3:*"
+            Resource: "*"
+          - Effect: Deny
+            Action: "s3:*"
+            Resource: ["arn:aws:s3:::{{Arguments.MintBucket}}"]
+          - Effect: Allow
+            Action: "s3:GetObject"
+            Resource: ["arn:aws:s3:::{{Arguments.MintBucket}}/{{Arguments.ApplicationID}}/*"]
+      - PolicyName: AmazonEC2MetadataReadAccess
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action: ec2:Describe*
+            Resource: "*"
+          - Effect: Allow
+            Action: elasticloadbalancing:Describe*
+            Resource: "*"
+  SparkSecGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Spark Appliance Security Group
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 1024
+          ToPort: 65535
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+  AppLoadBalancer:
+    Type: AWS::ElasticLoadBalancing::LoadBalancer
+    Properties:
+      LoadBalancerName: "{{SenzaInfo.StackName}}-{{Arguments.version}}"
+      CrossZone: true
+      HealthCheck:
+        Target: TCP:7077
+        Timeout: 5
+        Interval: 30
+        UnhealthyThreshold: 2
+        HealthyThreshold: 3
+      Listeners:
+        - InstancePort: 7077
+          LoadBalancerPort: 7077
+          Protocol: TCP
+          InstanceProtocol: TCP
+      SecurityGroups:
+        - "Fn::GetAtt" : [ "SparkSecGroup" , "GroupId" ]
+      Scheme: internal
+      Subnets:
+        Fn::FindInMap:
+          - LoadBalancerSubnets
+          - Ref: AWS::Region
+          - Subnets
