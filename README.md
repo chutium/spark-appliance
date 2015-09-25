@@ -9,6 +9,8 @@ Therefore we can use Spark standalone cluster without Hadoop stacks, so that it 
 
 ## EMRFS support
 
+EMRFS is an Hadoop-compatible implementation that allows EMR clusters to access data on Amazon S3, which provides much more features than the native S3 implementation in Hadoop.
+
 As mentioned we use AWS S3 as data storeage, original Spark is working with Hadoop S3 implementation which is based on predefined AWS security credentials, not IAM role based.
 
 Our [Senza](https://stups.io/senza/) appliances are running on the EC2 instances with appropriate IAM roles, we do not want to distribute or embed long-term AWS security credentials within an instance or application.
