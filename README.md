@@ -19,9 +19,60 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, we creat
 
 TBA
 
-### local test
+### Running with Docker as local test
 
-TBA
+```
+sudo docker build -t pierone.example.org/bi/spark:0.1-SNAPSHOT .
+
+sudo docker run -e START_MASTER="true" \
+                -e START_WORKER="true" \
+                -e START_THRIFTSERVER="" \
+                -e MASTER_STRING="" \
+                -e ZOOKEEPER_STACK_NAME="" \
+                -e HIVE_SITE_XML="" \
+                --net=host \
+                pierone.example.org/bi/spark:0.1-SNAPSHOT
+```
+
+### Deploying with Senza
+
+on single node:
+
+```
+senza create spark.yaml 1 \
+             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             StartMaster=true \
+             StartWorker=true \
+             StartThriftServer=true
+```
+
+Cluster mode:
+
+```
+senza create spark.yaml master \
+             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             StartMaster=true \
+             StartThriftServer=true
+```
+
+then use ```senza instance spark``` to find the IP of stack spark-master, use this IP within the MasterString, like: ```spark://172.31.xxx.xxx:7077```
+
+```
+senza create spark.yaml worker \
+             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             StartWorker=true \
+             MasterString="spark://172.31.xxx.xxx:7077" \
+             ClusterSize=3
+```
 
 ### build distribution package and try it out
 
