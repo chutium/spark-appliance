@@ -11,13 +11,13 @@ SenzaInfo:
         Description: "The API key of Scalyr logging service used by Taupage"
         Default: ""
     - ClusterSize:
-        Description: "The initial size (number of nodes) for the new Cassandra cluster"
+        Description: "The initial size (number of nodes) for the Spark cluster"
         Default: "1"
     - InstanceType:
         Description: "The instance type for the nodes of cluster"
         Default: "t2.medium"
-    - ZookeeperStackName:
-        Description: "Which ZooKeeper Stack should be used?"
+    - ZookeeperConnString:
+        Description: "Which ZooKeeper connection string should be used?"
         Default: ""
     - HiveSite:
         Description: "Which hive-site.xml file should be used?"
@@ -31,8 +31,8 @@ SenzaInfo:
     - StartThriftServer:
         Description: "Start spark thrift server (HiveServer2) daemon"
         Default: ""
-    - MasterString:
-        Description: "master connection string"
+    - MasterURI:
+        Description: "Spark Master URI, e.g. spark://127.0.0.1:7077"
         Default: ""
 SenzaComponents:
   - Configuration:
@@ -69,12 +69,12 @@ SenzaComponents:
         scalyr_account_key: "{{Arguments.ScalyrKey}}"
         environment:
           CLUSTER_SIZE: "{{Arguments.ClusterSize}}"
-          ZOOKEEPER_STACK_NAME: "{{Arguments.ZookeeperStackName}}"
+          ZK_CONN_STR: "{{Arguments.ZookeeperConnString}}"
           HIVE_SITE_XML: "{{Arguments.HiveSite}}"
           START_MASTER: "{{Arguments.StartMaster}}"
           START_WORKER: "{{Arguments.StartWorker}}"
           START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
-          MASTER_STRING: "{{Arguments.MasterString}}"
+          MASTER_URI: "{{Arguments.MasterURI}}"
 Resources:
   SparkRole:
     Type: AWS::IAM::Role
