@@ -31,7 +31,7 @@ sudo docker build -t pierone.example.org/bi/spark:0.1-SNAPSHOT .
 sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_THRIFTSERVER="" \
-                -e MASTER_STRING="" \
+                -e MASTER_URI="" \
                 -e ZOOKEEPER_STACK_NAME="" \
                 -e HIVE_SITE_XML="" \
                 --net=host \
@@ -64,7 +64,7 @@ senza create spark.yaml master \
              StartMaster=true
 ```
 
-then use ```senza instance spark``` to find the IP of stack spark-master, use this IP within the MasterString, like: ```spark://172.31.xxx.xxx:7077```
+then use ```senza instance spark``` to find the IP of stack spark-master, use this IP within the MasterURI, like: ```spark://172.31.xxx.xxx:7077```
 
 ```
 senza create spark.yaml worker \
@@ -73,9 +73,13 @@ senza create spark.yaml worker \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartWorker=true \
-             MasterString="spark://172.31.xxx.xxx:7077" \
+             MasterURI="spark://172.31.xxx.xxx:7077" \
              ClusterSize=3
 ```
+
+#### HA mode
+
+Spark uses Zookeeper for master process failure recovery in cluster mode. In STUPS To run Spark in High Availability
 
 ### Build distribution package and try it out
 
