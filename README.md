@@ -21,7 +21,16 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, we creat
 
 You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER``` to select the daemon to be started.
 
-Notice that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
+Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
+
+Now you can use following deploy mode
+  * [Docker locally](#running-with-docker-locally)
+  * [Deploying with Senza](#deploying-with-senza)
+    * [Single node (all in one)](#deploying-on-single-node)
+    * [Cluster mode](#cluster-mode)
+    * [HA mode with ZooKeeper](#ha-mode)
+  * [Build distribution package from source code](build-distribution-package-and-try-it-out)
+  * [Loading hive-site xml config file from S3](loading-hive-site-xml-config-file-from-s3)
 
 ### Running with Docker locally
 
@@ -79,7 +88,57 @@ senza create spark.yaml worker \
 
 #### HA mode
 
-Spark uses Zookeeper for master process failure recovery in cluster mode. In STUPS To run Spark in High Availability
+Spark uses ZooKeeper for master process failure recovery in cluster mode. In STUPS AWS environment to run Spark in High Availability, you need to start a ZooKeeper appliance, we suggest you to use [exhibitor-appliance](https://github.com/zalando/exhibitor-appliance).
+
+Sample senza create script for creating exhibitor-appliance:
+```
+senza create exhibitor-appliance.yaml spark \
+             DockerImage=pierone.example.org/teamid/exhibitor:0.1-SNAPSHOT \
+             ExhibitorBucket=exhibitor \
+             ApplicationID=exhibitor \
+             MintBucket=stups-mint-000000000-eu-west-1 \
+             ScalyrAccountKey=XXXYYYZZZ \
+             HostedZone=example.org.
+```
+
+After the deployment finished, you will have a Route53 record for this stack, like ```exhibitor-spark.example.org```, use this as ```ZookeeperConnString```, you can create a HA Spark cluster:
+```
+senza create spark.yaml ha \
+             DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=zalando-stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             StartMaster=true \
+             StartWorker=true \
+             ClusterSize=3 \
+             ZookeeperConnString="exhibitor-spark.example.org:2181"
+```
+
+This command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon on each node, if you would like to deploy master instances and worker instances separately like by [cluster mode](#cluster-mode), then the senza create script should be:
+```
+senza create spark.yaml master \
+             DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=zalando-stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             StartMaster=true \
+             ClusterSize=3 \
+             ZookeeperConnString="exhibitor-spark.example.org:2181"
+```
+(only different is, here you do not set ```StartWorker=true```. Moreover, the thrift server must be started on one of master instances, so if you want to use thrift server, you should set ```StartThriftServer=true``` here.)
+
+And you will get the master IPs from senza command: ```senza instance spark master```, use them as MasterURI, like: ```spark://172.31.xxx.xxx:7077,172.31.yyy.yyy:7077,172.31.zzz.zzz:7077```, and create workers:
+```
+senza create spark.yaml worker \
+             DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=zalando-stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             MasterURI="spark://172.31.xxx.xxx:7077,172.31.yyy.yyy:7077,172.31.zzz.zzz:7077" \
+             StartWorker=true \
+             ClusterSize=5 \
+             ZookeeperConnString="saiki-exhibitor-spark.saiki.zalan.do:2181"
+```
 
 ### Build distribution package and try it out
 
@@ -106,7 +165,7 @@ scala> textFile.count
 
 ## TODOs
 
-* Spark HA with zookeeper
+* ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
 * Start Spark cluster with given hive-site.xml
 * add more start/env variables such as -c (--cores) and -m (--memory)
 * spark-submit wrapper with ssh-tunnel
