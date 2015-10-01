@@ -185,10 +185,9 @@ scala> textFile.count
 ## TODOs
 
 * ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
-* ~~Start Spark cluster with given hive-site.xml~~ done by PR [#3](https://github.com/zalando/spark-appliance/pull/3), doc: [hive metastore and hive-site.xml config file](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
-* add more start/env variables such as -c (--cores) and -m (--memory)
-* spark-submit wrapper with ssh-tunnel
-* Spark sql wrapper with ssh-tunnel
+* ~~Start Spark cluster with given hive-site.xml~~ done by PR [#3](https://github.com/zalando/spark-appliance/pull/3), doc: [hive metastore and hive-site.xml](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
+* WebApp to get MasterURI (in order to use ```spark-submit```) and connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)
+* Add more start/env variables such as -c (--cores) and -m (--memory)
 * Appliance to deploy Spark cluster programmatically
 * Add Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * Add [Cassandra](https://github.com/zalando/stups-cassandra) support
