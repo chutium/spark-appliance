@@ -23,14 +23,14 @@ You can use the docker environment variables ```START_MASTER```, ```START_WORKER
 
 Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
 
-Now you can use following deploy mode
+Now you can use following deploy mode and steps
   * [Docker locally](#running-with-docker-locally)
   * [Deploying with Senza](#deploying-with-senza)
     * [Single node (all in one)](#deploying-on-single-node)
     * [Cluster mode](#cluster-mode)
     * [HA mode with ZooKeeper](#ha-mode)
-  * [Build distribution package from source code](build-distribution-package-and-try-it-out)
-  * [Loading hive-site xml config file from S3](loading-hive-site-xml-config-file-from-s3)
+  * [(Spark SQL user only) Creating hive metastore and loading hive-site.xml config file from S3](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
+  * [Build spark distribution package from source code](#build-distribution-package-and-try-it-out)
 
 ### Running with Docker locally
 
@@ -138,6 +138,25 @@ senza create spark.yaml worker \
              StartWorker=true \
              ClusterSize=5 \
              ZookeeperConnString="saiki-exhibitor-spark.saiki.zalan.do:2181"
+```
+
+### Creating hive metastore and loading hive-site xml config file from S3
+
+To use [Spark SQL](http://spark.apache.org/sql/), we suggest you create a [hive metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore), and put the DB connection settings in a hive-site.xml file, there are a lot of good documents for creating hive metastore and hive-site.xml, since we are using AWS environment, we can use RDS service and you can take a look the document from AWS for [creating hive metastore located in Amazon RDS](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-dev-create-metastore-outside.html).
+
+Currently the spark appliance support MySQL or PostgreSQL database as hive metastore, and due to security policies, make sure that you created the RDS instance with ```Subnet Group: internal```, ```Publicly Accessible: no```, and right Security groups.
+
+Once you have this hive-site.xml, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
+```
+senza create spark.yaml singlenode \
+             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             StartMaster=true \
+             StartWorker=true \
+             StartThriftServer=true \
+             HiveSite="s3://hive-configs/hive-site.xml"
 ```
 
 ### Build distribution package and try it out
