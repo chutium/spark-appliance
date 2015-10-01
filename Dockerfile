@@ -5,7 +5,7 @@ ENV SPARK_VERSION="1.5.2-SNAPSHOT" HADOOP_VERSION="2.6.0"
 ENV SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-${HADOOP_VERSION}"
 ENV SPARK_DIR="/opt/${SPARK_PACKAGE}"
 
-RUN apt-get update && apt-get install wget openjdk-7-jdk -y --force-yes
+RUN apt-get update && apt-get install wget openjdk-8-jdk -y --force-yes
 RUN pip3 install --upgrade kazoo boto3
 
 RUN wget https://s3-eu-west-1.amazonaws.com/zalando-spark/${SPARK_PACKAGE}.tgz -O /tmp/${SPARK_PACKAGE}.tgz \
