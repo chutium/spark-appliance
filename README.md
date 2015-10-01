@@ -185,7 +185,7 @@ scala> textFile.count
 ## TODOs
 
 * ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
-* Start Spark cluster with given hive-site.xml
+* ~~Start Spark cluster with given hive-site.xml~~ done by PR [#3](https://github.com/zalando/spark-appliance/pull/3), doc: [hive metastore and hive-site.xml config file](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
 * add more start/env variables such as -c (--cores) and -m (--memory)
 * spark-submit wrapper with ssh-tunnel
 * Spark sql wrapper with ssh-tunnel
