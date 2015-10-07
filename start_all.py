@@ -10,8 +10,11 @@ from kazoo.client import KazooClient
 
 logging.basicConfig(level=getattr(logging, 'INFO', None))
 
-spark_dir = os.getenv('SPARK_DIR').strip()
-masterUri = os.getenv('MASTER_URI').strip()
+def get_os_env(name):
+    return os.getenv(name).strip()
+
+spark_dir = get_os_env('SPARK_DIR')
+masterUri = get_os_env('MASTER_URI')
 master_ip = ""
 
 url = 'http://169.254.169.254/latest/dynamic/instance-identity/document'
@@ -26,14 +29,15 @@ except requests.exceptions.ConnectionError:
     private_ip = "127.0.0.1"
     region = None
 
-if os.getenv('ZK_CONN_STR').strip() != "":
-    zk_conn_str = os.getenv('ZK_CONN_STR').strip()
+
+if get_os_env('ZK_CONN_STR') != "":
+    zk_conn_str = get_os_env('ZK_CONN_STR')
     os.environ['SPARK_DAEMON_JAVA_OPTS'] = "-Dspark.deploy.recoveryMode=ZOOKEEPER " \
                                            "-Dspark.deploy.zookeeper.url=" + zk_conn_str
     logging.info("HA mode enabled with ZooKeeper connection string " + zk_conn_str)
 
-if os.getenv('HIVE_SITE_XML').strip() != "":
-    hive_site_xml = os.getenv('HIVE_SITE_XML').strip()
+if get_os_env('HIVE_SITE_XML') != "":
+    hive_site_xml = get_os_env('HIVE_SITE_XML')
     path = hive_site_xml[5:]
     bucket = path[:path.find('/')]
     file_key = path[path.find('/')+1:]
@@ -46,7 +50,7 @@ if os.getenv('HIVE_SITE_XML').strip() != "":
 
 log_watchers = {}
 
-if os.getenv('START_MASTER').strip().lower() == 'true':
+if get_os_env('START_MASTER').lower() == 'true':
     os.environ['SPARK_MASTER_IP'] = private_ip
     master_log = subprocess.check_output([spark_dir + "/sbin/start-master.sh"], universal_newlines=True)
     log_watchers['Master'] = subprocess.Popen(["tail", "-f", master_log.rsplit(None, 1)[-1]])
@@ -70,7 +74,7 @@ def get_master_uri(instanceId, private_ip, region):
             if found:
                 break
 
-        cluster_size = int(os.getenv('CLUSTER_SIZE').strip())
+        cluster_size = int(get_os_env('CLUSTER_SIZE'))
         master_ips = []
         while len(master_ips) != cluster_size:
             time.sleep(10)
@@ -104,10 +108,10 @@ def get_active_master_ip(zk_conn_str):
         zk.stop()
     return master_ip
 
-if os.getenv('ZK_CONN_STR').strip() != "":
+if get_os_env('ZK_CONN_STR') != "":
     if masterUri == "":
         masterUri = get_master_uri(instanceId, private_ip, region)
-    master_ip = get_active_master_ip(os.getenv('ZK_CONN_STR').strip())
+    master_ip = get_active_master_ip(get_os_env('ZK_CONN_STR'))
 
 if master_ip == "":
     master_ip = private_ip
@@ -115,8 +119,8 @@ if master_ip == "":
 if masterUri == "":
     masterUri = "spark://" + master_ip + ":7077"
 
-if os.getenv('START_WORKER').strip().lower() == 'true':
-    if os.getenv('START_MASTER').strip().lower() != 'true':
+if get_os_env('START_WORKER').lower() == 'true':
+    if get_os_env('START_MASTER').lower() != 'true':
         os.environ['SPARK_WORKER_PORT'] = "7077"
         logging.info("Spark master daemon not started, worker daemon will bind to port 7077.")
     else:
@@ -125,7 +129,7 @@ if os.getenv('START_WORKER').strip().lower() == 'true':
     worker_log = subprocess.check_output([spark_dir + "/sbin/start-slave.sh", masterUri], universal_newlines=True)
     log_watchers['Worker'] = subprocess.Popen(["tail", "-f", worker_log.rsplit(None, 1)[-1]])
 
-if os.getenv('START_THRIFTSERVER').strip().lower() == 'true':
+if get_os_env('START_THRIFTSERVER').lower() == 'true':
     if master_ip == private_ip:
         time.sleep(30)
         logging.info("Start thrift server only on current active spark master node.")
