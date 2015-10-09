@@ -123,7 +123,11 @@ senza create spark.yaml ha \
              ZookeeperStackName="exhibitor-spark"
 ```
 
-This command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon on each node, if you would like to deploy master instances and worker instances separately like by [cluster mode](#cluster-mode), then the senza create script should be:
+Now you get a spark cluster with 3 master and 3 worker nodes.
+
+This senza create command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon process on each node, if you would like to deploy master instances and worker instances separately like by [cluster mode](#cluster-mode), then you need to use two senza create commands.
+
+First, create master stack:
 ```
 senza create spark.yaml master \
              DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
