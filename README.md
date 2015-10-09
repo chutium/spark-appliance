@@ -35,16 +35,17 @@ Now you can use following deploy mode and steps
 ### Running with Docker locally
 
 ```
-sudo docker build -t pierone.example.org/bi/spark:0.1-SNAPSHOT .
+sudo docker build -t pierone.example.org/bi/spark:1.5.2-SNAPSHOT .
 
 sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_THRIFTSERVER="" \
-                -e MASTER_URI="" \
+                -e MASTER_STACK_NAME="" \
+                -e CLUSTER_SIZE="1" \
                 -e ZOOKEEPER_STACK_NAME="" \
                 -e HIVE_SITE_XML="" \
                 --net=host \
-                pierone.example.org/bi/spark:0.1-SNAPSHOT
+                pierone.example.org/bi/spark:1.5.2-SNAPSHOT
 ```
 
 ### Deploying with Senza
@@ -53,37 +54,43 @@ sudo docker run -e START_MASTER="true" \
 
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.5.2-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
-             StartThriftServer=true
+             StartThriftServer=true \
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate"
 ```
 
 #### Cluster mode
 
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.5.2-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
-             StartMaster=true
+             StartMaster=true \
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate"
 ```
 
-then use ```senza instance spark``` to find the IP of stack spark-master, use this IP within the MasterURI, like: ```spark://172.31.xxx.xxx:7077```
+then wait until ```senza list spark``` shows that CloudFormation stack ```spark-master``` with status ```CREATE_COMPLETE```.
 
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.5.2-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
+             MasterStackName="spark-master" \
              StartWorker=true \
-             MasterURI="spark://172.31.xxx.xxx:7077" \
-             ClusterSize=3
+             ClusterSize=3 \
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate"
 ```
 
 #### HA mode
@@ -98,20 +105,22 @@ senza create exhibitor-appliance.yaml spark \
              ApplicationID=exhibitor \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrAccountKey=XXXYYYZZZ \
-             HostedZone=example.org.
+             HostedZone=teamid.example.org.
 ```
 
-After the deployment finished, you will have a Route53 record for this stack, like ```exhibitor-spark.example.org```, use this as ```ZookeeperConnString```, you can create a HA Spark cluster:
+After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
-             DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
+             DockerImage=pierone.stups.zalan.do/bi/spark:1.5.2-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=zalando-stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
              ClusterSize=3 \
-             ZookeeperConnString="exhibitor-spark.example.org:2181"
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate" \
+             ZookeeperStackName="exhibitor-spark"
 ```
 
 This command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon on each node, if you would like to deploy master instances and worker instances separately like by [cluster mode](#cluster-mode), then the senza create script should be:
@@ -123,21 +132,25 @@ senza create spark.yaml master \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              ClusterSize=3 \
-             ZookeeperConnString="exhibitor-spark.example.org:2181"
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate" \
+             ZookeeperStackName="exhibitor-spark"
 ```
 (only different is, here you do not set ```StartWorker=true```. Moreover, the thrift server must be started on one of master instances, so if you want to use thrift server, you should set ```StartThriftServer=true``` here.)
 
-And you will get the master IPs from senza command: ```senza instance spark master```, use them as MasterURI, like: ```spark://172.31.xxx.xxx:7077,172.31.yyy.yyy:7077,172.31.zzz.zzz:7077```, and create workers:
+And wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
              DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=zalando-stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
-             MasterURI="spark://172.31.xxx.xxx:7077,172.31.yyy.yyy:7077,172.31.zzz.zzz:7077" \
              StartWorker=true \
              ClusterSize=5 \
-             ZookeeperConnString="saiki-exhibitor-spark.saiki.zalan.do:2181"
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate" \
+             ZookeeperStackName="exhibitor-spark" \
+             MasterStackName="spark-master"
 ```
 
 ### Creating hive metastore and loading hive-site xml config file from S3
@@ -156,6 +169,8 @@ senza create spark.yaml singlenode \
              StartMaster=true \
              StartWorker=true \
              StartThriftServer=true \
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate"
              HiveSite="s3://hive-configs/hive-site.xml"
 ```
 
