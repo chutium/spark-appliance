@@ -16,8 +16,8 @@ SenzaInfo:
     - InstanceType:
         Description: "The instance type for the nodes of cluster"
         Default: "t2.medium"
-    - ZookeeperConnString:
-        Description: "Which ZooKeeper connection string should be used?"
+    - ZookeeperStackName:
+        Description: "Which ZooKeeper Stack should be used?"
         Default: ""
     - HiveSite:
         Description: "Which hive-site.xml file should be used?"
@@ -31,9 +31,22 @@ SenzaInfo:
     - StartThriftServer:
         Description: "Start spark thrift server (HiveServer2) daemon"
         Default: ""
-    - MasterURI:
-        Description: "Spark Master URI, e.g. spark://127.0.0.1:7077"
+    - MasterStackName:
+        Description: "Spark Master stack name, e.g. spark-master"
         Default: ""
+    - AuthURL:
+        Description: "OAuth2 service URL"
+        Default: ""
+    - TokenInfoURL:
+        Description: "TokenInfo service URL"
+        Default: ""
+    - HostedZone:
+        Description: "Hosted Zone in which Stups deploys"
+        Default: ""
+    - SSLCertificateId:
+        Description: "ARN of your SSL Certificate which will be used for ELB"
+        Default: ""
+
 SenzaComponents:
   - Configuration:
       Type: Senza::StupsAutoConfiguration
@@ -69,12 +82,14 @@ SenzaComponents:
         scalyr_account_key: "{{Arguments.ScalyrKey}}"
         environment:
           CLUSTER_SIZE: "{{Arguments.ClusterSize}}"
-          ZK_CONN_STR: "{{Arguments.ZookeeperConnString}}"
+          ZOOKEEPER_STACK_NAME: "{{Arguments.ZookeeperStackName}}"
           HIVE_SITE_XML: "{{Arguments.HiveSite}}"
           START_MASTER: "{{Arguments.StartMaster}}"
           START_WORKER: "{{Arguments.StartWorker}}"
           START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
-          MASTER_URI: "{{Arguments.MasterURI}}"
+          MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
+          AUTH_URL: "{{Arguments.AuthURL}}"
+          TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
 Resources:
   SparkRole:
     Type: AWS::IAM::Role
@@ -124,6 +139,14 @@ Resources:
           FromPort: 22
           ToPort: 22
           CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 80
+          ToPort: 80
+          CidrIp: 0.0.0.0/0
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          CidrIp: 0.0.0.0/0
   AppLoadBalancer:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
@@ -136,15 +159,27 @@ Resources:
         UnhealthyThreshold: 2
         HealthyThreshold: 3
       Listeners:
-        - InstancePort: 7077
-          LoadBalancerPort: 7077
-          Protocol: TCP
-          InstanceProtocol: TCP
+        - InstancePort: 8000
+          LoadBalancerPort: 443
+          Protocol: HTTPS
+          InstanceProtocol: HTTP
+          SSLCertificateId: "{{Arguments.SSLCertificateId}}"
       SecurityGroups:
         - "Fn::GetAtt" : [ "SparkSecGroup" , "GroupId" ]
-      Scheme: internal
+      Scheme: internet-facing
       Subnets:
         Fn::FindInMap:
           - LoadBalancerSubnets
           - Ref: AWS::Region
           - Subnets
+  Route53VesionedDomainRecord:
+    Type: AWS::Route53::RecordSet
+    Properties:
+      HostedZoneName: "{{Arguments.HostedZone}}"
+      Name: "{{SenzaInfo.StackName}}-{{Arguments.version}}.{{Arguments.HostedZone}}"
+      Type: CNAME
+      TTL: 20
+      ResourceRecords:
+        - Fn::GetAtt:
+           - AppLoadBalancer
+           - DNSName
