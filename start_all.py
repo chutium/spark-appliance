@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
-
 import os
 import time
 import boto3
 import logging
 import requests
 import subprocess
-from kazoo.client import KazooClient
+import generate_zk_conn_str
+import generate_master_uri
+import get_alive_master_ip
 
 logging.basicConfig(level=getattr(logging, 'INFO', None))
 
-spark_dir = os.getenv('SPARK_DIR').strip()
-masterUri = os.getenv('MASTER_URI').strip()
-master_ip = ""
+
+def get_os_env(name):
+    return os.getenv(name).strip()
+
+spark_dir = get_os_env('SPARK_DIR')
 
 url = 'http://169.254.169.254/latest/dynamic/instance-identity/document'
 try:
@@ -26,14 +29,15 @@ except requests.exceptions.ConnectionError:
     private_ip = "127.0.0.1"
     region = None
 
-if os.getenv('ZK_CONN_STR').strip() != "":
-    zk_conn_str = os.getenv('ZK_CONN_STR').strip()
+zk_conn_str = ""
+if get_os_env('ZOOKEEPER_STACK_NAME') != "":
+    zk_conn_str = generate_zk_conn_str.run(get_os_env('ZOOKEEPER_STACK_NAME'), region)
     os.environ['SPARK_DAEMON_JAVA_OPTS'] = "-Dspark.deploy.recoveryMode=ZOOKEEPER " \
                                            "-Dspark.deploy.zookeeper.url=" + zk_conn_str
     logging.info("HA mode enabled with ZooKeeper connection string " + zk_conn_str)
 
-if os.getenv('HIVE_SITE_XML').strip() != "":
-    hive_site_xml = os.getenv('HIVE_SITE_XML').strip()
+if get_os_env('HIVE_SITE_XML') != "":
+    hive_site_xml = get_os_env('HIVE_SITE_XML')
     path = hive_site_xml[5:]
     bucket = path[:path.find('/')]
     file_key = path[path.find('/')+1:]
@@ -46,68 +50,21 @@ if os.getenv('HIVE_SITE_XML').strip() != "":
 
 log_watchers = {}
 
-if os.getenv('START_MASTER').strip().lower() == 'true':
+if get_os_env('START_MASTER').lower() == 'true':
     os.environ['SPARK_MASTER_IP'] = private_ip
     master_log = subprocess.check_output([spark_dir + "/sbin/start-master.sh"], universal_newlines=True)
     log_watchers['Master'] = subprocess.Popen(["tail", "-f", master_log.rsplit(None, 1)[-1]])
 
+master_stack_name = get_os_env('MASTER_STACK_NAME')
+cluster_size = int(get_os_env('CLUSTER_SIZE'))
+masterUri = ""
+master_ip = ""
 
-def get_master_uri(instanceId, private_ip, region):
-    master_ips = []
-
-    if region is not None:
-        elb = boto3.client('elb', region_name=region)
-        ec2 = boto3.client('ec2', region_name=region)
-
-        response = elb.describe_load_balancers()
-        found = False
-        for loadbalancer in response['LoadBalancerDescriptions']:
-            for instance in loadbalancer['Instances']:
-                if instance['InstanceId'] == instanceId:
-                    lb_name = loadbalancer['LoadBalancerName']
-                    found = True
-                    break
-            if found:
-                break
-
-        cluster_size = int(os.getenv('CLUSTER_SIZE').strip())
-        master_ips = []
-        while len(master_ips) != cluster_size:
-            time.sleep(10)
-            response = elb.describe_instance_health(LoadBalancerName=lb_name)
-            master_ips = []
-            for instance in response['InstanceStates']:
-                if instance['State'] == 'InService':
-                    master_ips.append(ec2.describe_instances(
-                        InstanceIds=[instance['InstanceId']])['Reservations'][0]['Instances'][0]['PrivateIpAddress'])
-    else:
-        master_ips = [private_ip]
-
-    master_str = ''
-    for ip in master_ips:
-        master_str += ip + ':7077,'
-
-    logging.info("HA mode enabled, using spark master URI: " + "spark://" + master_str[:-1])
-    return "spark://" + master_str[:-1]
-
-
-def get_active_master_ip(zk_conn_str):
-    zk = KazooClient(hosts=zk_conn_str)
-    zk.start()
-    try:
-        master_ip = zk.get("/spark/leader_election/current_master")[0].decode('utf-8')
-        logging.info("HA mode enabled, active spark master: " + master_ip)
-        zk.stop()
-    except:
-        master_ip = ""
-        logging.warning("ERROR: HA mode enabled, but no active spark master founded!")
-        zk.stop()
-    return master_ip
-
-if os.getenv('ZK_CONN_STR').strip() != "":
-    if masterUri == "":
-        masterUri = get_master_uri(instanceId, private_ip, region)
-    master_ip = get_active_master_ip(os.getenv('ZK_CONN_STR').strip())
+if zk_conn_str != "":
+    masterUri = generate_master_uri.run(master_stack_name, instanceId, private_ip, region, cluster_size)
+    logging.info("HA mode enabled, using spark master URI: " + masterUri)
+    master_ip = get_alive_master_ip.run(zk_conn_str)
+    logging.info("HA mode enabled, current alive spark master: " + master_ip)
 
 if master_ip == "":
     master_ip = private_ip
@@ -115,8 +72,8 @@ if master_ip == "":
 if masterUri == "":
     masterUri = "spark://" + master_ip + ":7077"
 
-if os.getenv('START_WORKER').strip().lower() == 'true':
-    if os.getenv('START_MASTER').strip().lower() != 'true':
+if get_os_env('START_WORKER').lower() == 'true':
+    if get_os_env('START_MASTER').lower() != 'true':
         os.environ['SPARK_WORKER_PORT'] = "7077"
         logging.info("Spark master daemon not started, worker daemon will bind to port 7077.")
     else:
@@ -125,7 +82,7 @@ if os.getenv('START_WORKER').strip().lower() == 'true':
     worker_log = subprocess.check_output([spark_dir + "/sbin/start-slave.sh", masterUri], universal_newlines=True)
     log_watchers['Worker'] = subprocess.Popen(["tail", "-f", worker_log.rsplit(None, 1)[-1]])
 
-if os.getenv('START_THRIFTSERVER').strip().lower() == 'true':
+if get_os_env('START_THRIFTSERVER').lower() == 'true':
     if master_ip == private_ip:
         time.sleep(30)
         logging.info("Start thrift server only on current active spark master node.")
@@ -135,6 +92,22 @@ if os.getenv('START_THRIFTSERVER').strip().lower() == 'true':
                                                     "--hiveconf", "hive.server2.thrift.bind.host=" + master_ip],
                                                    universal_newlines=True)
         log_watchers['ThriftServer'] = subprocess.Popen(["tail", "-f", thriftserver_log.rsplit(None, 1)[-1]])
+
+logging.info("Daemon started, starting webapp now...")
+if master_stack_name == "":
+    stack_name = "NONE"
+else:
+    stack_name = master_stack_name
+if zk_conn_str == "":
+    zk_str = "NONE"
+else:
+    zk_str = zk_conn_str
+if region is None:
+    region_str = "NONE"
+else:
+    region_str = region
+pyargv = stack_name + " " + instanceId + " " + private_ip + " " + region_str + " " + str(cluster_size) + " " + zk_str
+log_watchers['WebApp'] = subprocess.Popen(["uwsgi", "--http", ":8000", "-w", "webapp", "--pyargv", pyargv])
 
 while True:
     time.sleep(60)
