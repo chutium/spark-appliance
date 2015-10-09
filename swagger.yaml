@@ -1,0 +1,39 @@
+swagger: '2.0'
+info:
+  title: Spark appliance
+  version: "0.1"
+consumes:
+  - text/plain
+produces:
+  - text/plain
+paths:
+  /get_master_uri:
+    get:
+      summary: Get URI of Spark masters
+      security:
+        - oauth2: [uid]
+      operationId: webapp.get_master_uri
+      responses:
+        200:
+          description: Return Master URI
+        404:
+          description: Master not found
+  /get_master_ip:
+    get:
+      summary: Get IP of current alive Spark master
+      security:
+        - oauth2: [uid]
+      operationId: webapp.get_master_ip
+      responses:
+        200:
+          description: Return Master IP
+        404:
+          description: Master not found
+securityDefinitions:
+  oauth2:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: "{{ auth_url if auth_url }}"
+    x-tokenInfoUrl: "{{ tokeninfo_url if tokeninfo_url }}"
+    scopes:
+      uid: Unique identifier of the user accessing the service.
