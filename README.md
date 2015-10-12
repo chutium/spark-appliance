@@ -206,7 +206,7 @@ scala> textFile.count
 * ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
 * ~~Start Spark cluster with given hive-site.xml~~ done by PR [#3](https://github.com/zalando/spark-appliance/pull/3), doc: [hive metastore and hive-site.xml](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
 * ~~WebApp to get MasterURI (in order to use ```spark-submit```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
-* ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
+* ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#7](https://github.com/zalando/spark-appliance/pull/7)
 * WebApp to run Spark SQL queries
 * Add more start/env variables such as -c (--cores) and -m (--memory)
 * Appliance to deploy Spark cluster programmatically
