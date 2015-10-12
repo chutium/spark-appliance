@@ -16,13 +16,10 @@ RUN wget https://s3-eu-west-1.amazonaws.com/zalando-spark/${SPARK_PACKAGE}.tgz -
  && mv $SPARK_DIR/conf/spark-env.sh.zalando $SPARK_DIR/conf/spark-env.sh \
  && mkdir /tmp/s3 && chmod -R 777 /tmp/s3
 
-COPY generate_zk_conn_str.py /opt/
-COPY generate_master_uri.py /opt/
-COPY get_alive_master_ip.py /opt/
-
 COPY swagger.yaml /opt/
 COPY webapp.py /opt/
 
+COPY utils.py /opt/
 COPY start_all.py /opt/
 RUN chmod 777 /opt/start_all.py
 
