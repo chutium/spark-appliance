@@ -3,13 +3,13 @@ Distributed Spark standalone cluster appliance for the [STUPS](https://stups.io)
 
 A lot of our data analysis workflows are based on EMR, but there are many conflicts between EMR and STUPS-Policies, so Spark-Appliance will be an alternative to EMR.
 
-Since we use AWS S3 as our data storage layer, so HDFS is not needed, and if we use Spark, MapReduce framework and YARN resource management toolbox as part of traditional Hadoop Ecosystem are not needed either.
+Since we use AWS S3 as our data storage layer, HDFS is not needed, and if we use Spark, MapReduce framework and YARN resource management toolbox as part of traditional Hadoop Ecosystem are not needed either.
 
 Therefore we can use Spark standalone cluster without Hadoop stacks, so that it will be easier to make it work in STUPS AWS environment.
 
 ## EMRFS support
 
-EMRFS is an Hadoop-compatible implementation that allows EMR clusters to access data on Amazon S3, which provides much more features than the native S3 implementation in Hadoop.
+EMRFS is a Hadoop-compatible implementation that allows EMR clusters to access data on Amazon S3, which provides much more features than the native S3 implementation in Hadoop.
 
 As mentioned we use AWS S3 as data storage, original Spark is working with Hadoop S3 implementation which is based on predefined AWS security credentials, not IAM role based.
 
@@ -205,9 +205,11 @@ scala> textFile.count
 
 * ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
 * ~~Start Spark cluster with given hive-site.xml~~ done by PR [#3](https://github.com/zalando/spark-appliance/pull/3), doc: [hive metastore and hive-site.xml](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
-* WebApp to get MasterURI (in order to use ```spark-submit```) and connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)
+* ~~WebApp to get MasterURI (in order to use ```spark-submit```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
+* ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
+* WebApp to run Spark SQL queries
 * Add more start/env variables such as -c (--cores) and -m (--memory)
 * Appliance to deploy Spark cluster programmatically
-* Add Kafka/[Buku](https://github.com/zalando/saiki-buku) support
-* Add [Cassandra](https://github.com/zalando/stups-cassandra) support
-* Add postgres/[Spilo](https://github.com/zalando/spilo) support
+* Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
+* Add code sample for [Cassandra](https://github.com/zalando/stups-cassandra) support
+* Add code sample for postgres/[Spilo](https://github.com/zalando/spilo) support
