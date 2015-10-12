@@ -29,6 +29,17 @@ paths:
           description: Return Master IP
         404:
           description: Master not found
+  /get_thrift_server_uri:
+    get:
+      summary: Get URI of Spark thrift server
+      security:
+        - oauth2: [uid]
+      operationId: webapp.get_thrift_server_uri
+      responses:
+        200:
+          description: Return Thrift Server URI
+        404:
+          description: Thrift server not running
 securityDefinitions:
   oauth2:
     type: oauth2

@@ -1,41 +1,40 @@
 #!/usr/bin/env python3
-import os
-import sys
+
 import logging
 import connexion
-import generate_master_uri
-import get_alive_master_ip
+import utils
 
-master_stack_name = sys.argv[1]
-if master_stack_name == "NONE":
-    master_stack_name = ""
-instanceId = sys.argv[2]
-private_ip = sys.argv[3]
-region = sys.argv[4]
-if region == "NONE":
-    region = None
-cluster_size = int(sys.argv[5])
-zk_conn_str = sys.argv[6]
-if zk_conn_str == "NONE":
-    zk_conn_str = ""
+utils.set_ec2_identities()
+private_ip = utils.get_private_ip()
 
 
 def get_master_uri():
-    if zk_conn_str != "":
-        return generate_master_uri.run(master_stack_name, instanceId, private_ip, region, cluster_size)
+    master_uri = utils.generate_master_uri()
+    if master_uri != "":
+        return master_uri
     else:
-        return "spark://" + get_master_ip() + ":7077"
+        return "spark://" + private_ip + ":7077"
 
 
 def get_master_ip():
-    if zk_conn_str != "":
-        return get_alive_master_ip.run(zk_conn_str)
+    master_ip = utils.get_alive_master_ip()
+    if master_ip != "":
+        return master_ip
     else:
         return private_ip
 
+
+def get_thrift_server_uri():
+    thrift_server_uri = utils.generate_thrift_server_uri()
+    if thrift_server_uri != "":
+        return thrift_server_uri
+    else:
+        return "Not found: Thrift server not running!", 404
+
+
 logging.basicConfig(level=getattr(logging, 'INFO', None))
 
-api_args = {'auth_url': os.environ.get('AUTH_URL'), 'tokeninfo_url': os.environ.get('TOKENINFO_URL')}
+api_args = {'auth_url': utils.get_os_env('AUTH_URL'), 'tokeninfo_url': utils.get_os_env('TOKENINFO_URL')}
 webapp = connexion.App(__name__, port=8080, debug=True, server='gevent')
 webapp.add_api('swagger.yaml', arguments=api_args)
 application = webapp.app
