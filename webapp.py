@@ -35,7 +35,7 @@ def get_thrift_server_uri():
 logging.basicConfig(level=getattr(logging, 'INFO', None))
 
 api_args = {'auth_url': utils.get_os_env('AUTH_URL'), 'tokeninfo_url': utils.get_os_env('TOKENINFO_URL')}
-webapp = connexion.App(__name__, port=8080, debug=True, server='gevent')
+webapp = connexion.App(__name__, port=8000, debug=True, server='gevent')
 webapp.add_api('swagger.yaml', arguments=api_args)
 application = webapp.app
 

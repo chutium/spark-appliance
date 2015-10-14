@@ -208,8 +208,10 @@ scala> textFile.count
 * ~~WebApp to get MasterURI (in order to use ```spark-submit```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
 * ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#7](https://github.com/zalando/spark-appliance/pull/7)
 * WebApp to run Spark SQL queries
+* WebApp to run Spark jars
 * Add more start/env variables such as -c (--cores) and -m (--memory)
 * Appliance to deploy Spark cluster programmatically
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * Add code sample for [Cassandra](https://github.com/zalando/stups-cassandra) support
 * Add code sample for postgres/[Spilo](https://github.com/zalando/spilo) support
+* Web interface to Spark shell
