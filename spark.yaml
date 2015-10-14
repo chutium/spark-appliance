@@ -80,6 +80,7 @@ SenzaComponents:
         networking: host
         mint_bucket: '{{Arguments.MintBucket}}'
         scalyr_account_key: "{{Arguments.ScalyrKey}}"
+        enhanced_cloudwatch_metrics: true
         environment:
           CLUSTER_SIZE: "{{Arguments.ClusterSize}}"
           ZOOKEEPER_STACK_NAME: "{{Arguments.ZookeeperStackName}}"
@@ -125,6 +126,13 @@ Resources:
             Resource: "*"
           - Effect: Allow
             Action: elasticloadbalancing:Describe*
+            Resource: "*"
+      - PolicyName: WriteZMONMetricsIntoCloudWatch
+        PolicyDocument:
+          Version: "2012-10-17"
+          Statement:
+          - Effect: Allow
+            Action: "cloudwatch:PutMetricData"
             Resource: "*"
   SparkSecGroup:
     Type: AWS::EC2::SecurityGroup
