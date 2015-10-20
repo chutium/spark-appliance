@@ -252,7 +252,7 @@ curl http://$host:8000/get_master_uri
 curl http://$host:8000/get_thrift_server_uri
 ```
 
-In case if you enabled OAuth2, then you need to add a header info with valid oauth2_token (currently we just use the ```uid``` scope) by the curl call:
+When you enabled OAuth2 (```AuthURL``` and ```TokenInfoURL``` is set), you need to add a header info with valid oauth2_token (currently we just use the ```uid``` scope) by the curl call:
 
 ```
 oauth_token=xxxxx-xxx-xxx-xxx-xxxxx
