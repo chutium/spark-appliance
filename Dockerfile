@@ -9,12 +9,13 @@ RUN apt-get update && apt-get install wget openjdk-8-jdk -y --force-yes
 RUN pip3 install --upgrade kazoo boto3 connexion gevent uwsgi
 
 RUN wget https://s3-eu-west-1.amazonaws.com/zalando-spark/${SPARK_PACKAGE}.tgz -O /tmp/${SPARK_PACKAGE}.tgz \
- && tar zxf /tmp/${SPARK_PACKAGE}.tgz -C /opt && rm -rf /tmp/${SPARK_PACKAGE}.tgz \
+ && tar zxf /tmp/${SPARK_PACKAGE}.tgz -C /opt \
+ && rm  -rf /tmp/${SPARK_PACKAGE}.tgz \
  && chmod -R 777 $SPARK_DIR \
  && mv $SPARK_DIR/conf/core-site.xml.zalando $SPARK_DIR/conf/core-site.xml \
  && mv $SPARK_DIR/conf/emrfs-default.xml.zalando $SPARK_DIR/conf/emrfs-default.xml \
  && mv $SPARK_DIR/conf/spark-env.sh.zalando $SPARK_DIR/conf/spark-env.sh \
- && mkdir /tmp/s3 && chmod -R 777 /tmp/s3
+ && mkdir /tmp/s3 && chmod -R 777 /tmp
 
 COPY swagger.yaml /opt/
 COPY webapp.py /opt/

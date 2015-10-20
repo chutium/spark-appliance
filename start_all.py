@@ -91,8 +91,9 @@ if utils.get_os_env('START_THRIFTSERVER').lower() == 'true':
                                                    universal_newlines=True)
         log_watchers['ThriftServer'] = subprocess.Popen(["tail", "-f", thriftserver_log.rsplit(None, 1)[-1]])
 
-logging.info("Daemon started, starting webapp now...")
-log_watchers['WebApp'] = subprocess.Popen(["uwsgi", "--http", ":8000", "-w", "webapp"])
+if utils.get_os_env('START_WEBAPP').lower() == 'true':
+    logging.info("Daemon started, starting webapp now...")
+    log_watchers['WebApp'] = subprocess.Popen(["uwsgi", "--http", ":8000", "-w", "webapp"])
 
 master_size = len(master_uri.split(','))
 checker = 1
