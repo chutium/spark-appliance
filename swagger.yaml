@@ -40,6 +40,17 @@ paths:
           description: Return Thrift Server URI
         404:
           description: Thrift server not running
+  /get_jdbc_conn_str:
+    get:
+      summary: Get connection string of Spark thrift server
+      security:
+        - oauth2: [uid]
+      operationId: webapp.get_thrift_server_uri
+      responses:
+        200:
+          description: Return JDBC Server URI
+        404:
+          description: JDBC server not running
 securityDefinitions:
   oauth2:
     type: oauth2

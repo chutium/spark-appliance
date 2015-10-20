@@ -31,6 +31,9 @@ SenzaInfo:
     - StartThriftServer:
         Description: "Start spark thrift server (HiveServer2) daemon"
         Default: ""
+    - StartWebApp:
+        Description: "Start webapp for spark appliance"
+        Default: ""
     - MasterStackName:
         Description: "Spark Master stack name, e.g. spark-master"
         Default: ""
@@ -88,6 +91,7 @@ SenzaComponents:
           START_MASTER: "{{Arguments.StartMaster}}"
           START_WORKER: "{{Arguments.StartWorker}}"
           START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
+          START_WEBAPP: "{{Arguments.StartWebApp}}"
           MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
@@ -165,7 +169,7 @@ Resources:
         Timeout: 5
         Interval: 30
         UnhealthyThreshold: 2
-        HealthyThreshold: 3
+        HealthyThreshold: 2
       Listeners:
         - InstancePort: 8000
           LoadBalancerPort: 443
