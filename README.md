@@ -17,13 +17,9 @@ Our [Senza](https://stups.io/senza/) appliances are running on the EC2 instances
 
 So we need to integrate the implementation of Amazon's EMRFS and Spark, we created [a branch for this](https://github.com/zalando/spark/tree/branch-1.5-zalando) in our github account.
 
-## Usage
+# Usage
 
-You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER```, ```START_WEBAPP``` to select the daemon to be started.
-
-Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
-
-Now you can use following deploy mode and steps
+* [Deployment with Docker and/or Senza](#deployment)
   * [Docker locally](#running-with-docker-locally)
   * [Deploying with Senza](#deploying-with-senza)
     * [Single node (all in one)](#deploying-on-single-node)
@@ -31,6 +27,14 @@ Now you can use following deploy mode and steps
     * [HA mode with ZooKeeper](#ha-mode)
   * [(Spark SQL user only) Creating hive metastore and loading hive-site.xml config file from S3](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
   * [Build spark distribution package from source code](#build-distribution-package-and-try-it-out)
+* [How To Use -- HTTP REST Call examples](#how-to-use)
+* [TODOs](#todos)
+
+## Deployment
+
+You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER```, ```START_WEBAPP``` to select the daemon to be started.
+
+Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
 
 ### Running with Docker locally
 
@@ -230,6 +234,62 @@ scala> val textFile = sc.textFile("s3://some-bucket/README.md")
 scala> textFile.count
 ```
 
+## How to use
+
+### getting spark cluster info
+
+```
+host=172.31.xxx.xxx
+curl http://$host:8000/get_master_ip
+curl http://$host:8000/get_master_uri
+curl http://$host:8000/get_thrift_server_uri
+```
+
+In case if you enabled OAuth2, then you need to add a header info with valid oauth2_token (currently we just use the ```uid``` scope) by the curl call:
+
+```
+oauth_token=xxxxx-xxx-xxx-xxx-xxxxx
+host=172.31.xxx.xxx
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_master_ip
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_master_uri
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_thrift_server_uri
+```
+
+### submitting Spark SQL query via beeline
+
+```
+beeline -u $(curl http://$host:8000/get_thrift_server_uri) -f some-hive-query.sql
+```
+
+### submitting Spark SQL query via REST API
+
+```
+oauth_token=xxxxx-xxx-xxx-xxx-xxxxx
+host=172.31.xxx.xxx
+
+### assume you have a table my_tbl created in db_test in hive
+### then create a simple Hive count SQL script for this table
+echo "select count(*) from db_test.my_tbl;" > count.sql
+
+job_id=$(curl --insecure --request POST --header "Authorization: Bearer $oauth_token" -F file=@count.sql http://$host:8000/send_query)
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_job_status/$job_id
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_job_output/$job_id
+```
+
+### submitting Spark JAR or Python script via spark-submit
+
+```spark-submit --class your.main.class --master $(curl http://$host:8000/get_master_uri) your.jar```
+
+or
+
+```spark-submit --master $(curl http://$host:8000/get_master_uri) your.py```
+
+
+### submitting Spark JAR or Python script via REST API
+
+see https://github.com/zalando/spark-appliance/pull/10#issue-112365605
+
+
 ## TODOs
 
 * ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
@@ -237,8 +297,8 @@ scala> textFile.count
 * ~~WebApp to get MasterURI (in order to use ```spark-submit```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
 * ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#7](https://github.com/zalando/spark-appliance/pull/7)
 * ~~WebApp to run Spark SQL queries~~ done by PR [#9](https://github.com/zalando/spark-appliance/pull/9), doc see comment in this PR
-* ~~WebApp to run Spark jars~~ done by [commit in PR 10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR74), example jar committed: [spark-textfile-example](https://github.com/zalando/spark-appliance/tree/master/examples/scala/spark-textfile-example), doc see comment in this PR
-* ~~WebApp to run Spark python scripts~~ done by [commit in PR 10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR82), doc see comment in this PR
+* ~~WebApp to run Spark jars~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR74), example jar committed: [spark-textfile-example](https://github.com/zalando/spark-appliance/tree/master/examples/scala/spark-textfile-example), doc see comment in this PR
+* ~~WebApp to run Spark python scripts~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR82), doc see comment in this PR
 * WebApp to run Spark R -- is this possible? seems not in current version (1.5.2)
 * Add more start/env variables such as -c (--cores) and -m (--memory)
 * Appliance to deploy Spark cluster programmatically
