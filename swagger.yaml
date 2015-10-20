@@ -40,17 +40,64 @@ paths:
           description: Return Thrift Server URI
         404:
           description: Thrift server not running
-  /get_jdbc_conn_str:
-    get:
-      summary: Get connection string of Spark thrift server
+  /send_query:
+    post:
+      summary: Send SQL query to Spark thrift server
       security:
         - oauth2: [uid]
-      operationId: webapp.get_thrift_server_uri
+      operationId: webapp.send_query
+      parameters:
+        - file:
+          name: file
+          description: query file
+          in: body
+          type: string
+          required: true
       responses:
         200:
-          description: Return JDBC Server URI
+          description: Successful
+        500:
+          description: Failed to send query
+  /get_job_status/{job_id}:
+    get:
+      summary: Get status of a submitted Spark application or Spark SQL query
+      security:
+        - oauth2: [uid]
+      operationId: webapp.get_job_status
+      parameters:
+        - job_id:
+          name: job_id
+          description: ID of Spark application or Spark SQL query
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: Still running
+        201:
+          description: Finished
         404:
-          description: JDBC server not running
+          description: ID not found
+        500:
+          description: Failed
+  /get_job_output/{job_id}:
+    get:
+      summary: Get outputs of a submitted Spark application or Spark SQL query
+      security:
+        - oauth2: [uid]
+      operationId: webapp.get_job_output
+      parameters:
+        - job_id:
+          name: job_id
+          description: ID of Spark application or Spark SQL query
+          in: path
+          type: string
+          required: true
+      responses:
+        200:
+          description: Successful
+        404:
+          description: ID not found
 securityDefinitions:
   oauth2:
     type: oauth2
