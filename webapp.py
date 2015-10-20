@@ -63,6 +63,33 @@ def send_query():
         return "Failed!", 500
 
 
+def submit_application():
+    try:
+        job_id = get_job_file()
+        job_args = request.form.get('job_args', "").split()
+        main_class = request.form.get('main_class', None)
+        spark_dir = utils.get_os_env('SPARK_DIR')
+        import subprocess
+        if main_class is not None:
+            job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/spark-submit",
+                                                     "--class", main_class,
+                                                     "--master", get_master_uri(),
+                                                     "--jars", "/tmp/" + job_id,
+                                                     "/tmp/" + job_id] + job_args,
+                                                    universal_newlines=True,
+                                                    stdout=subprocess.PIPE)
+        else:
+            job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/spark-submit",
+                                                     "--master", get_master_uri(),
+                                                     "--py-files", "/tmp/" + job_id,
+                                                     "/tmp/" + job_id] + job_args,
+                                                    universal_newlines=True,
+                                                    stdout=subprocess.PIPE)
+        return job_id
+    except:
+        return "Failed!", 500
+
+
 def get_job_status(job_id):
     if job_id in job_watchers:
         status = job_watchers[job_id].poll()

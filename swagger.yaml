@@ -58,6 +58,30 @@ paths:
           description: Successful
         500:
           description: Failed to send query
+  /submit_application:
+    post:
+      summary: Submit Spark JAR or Python application
+      security:
+        - oauth2: [uid]
+      operationId: webapp.submit_application
+      parameters:
+        - file:
+          name: file
+          description: application file
+          in: formData
+          type: string
+          required: true
+        - main_class:
+          name: main_class
+          description: main class of JAR application
+          in: formData
+          type: string
+          required: false
+      responses:
+        200:
+          description: Successful
+        500:
+          description: Failed to submit application
   /get_job_status/{job_id}:
     get:
       summary: Get status of a submitted Spark application or Spark SQL query
