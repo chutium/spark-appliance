@@ -187,3 +187,12 @@ def generate_thrift_server_uri():
         return "jdbc:hive2://" + thrift_server_ip + ":10000/"
     else:
         return ""
+
+
+def get_unique_id():
+    import time
+    import string
+    import random
+    chars = string.ascii_uppercase + string.digits
+    size = 4
+    return str(time.time()) + "-" + ''.join(random.choice(chars) for _ in range(size))

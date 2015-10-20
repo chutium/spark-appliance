@@ -2,10 +2,13 @@
 
 import logging
 import connexion
+from flask import request
+from flask import Response
 import utils
 
 utils.set_ec2_identities()
 private_ip = utils.get_private_ip()
+job_watchers = {}
 
 
 def get_master_uri():
@@ -31,6 +34,56 @@ def get_thrift_server_uri():
     else:
         return "Not found: Thrift server not running!", 404
 
+
+def get_job_file():
+    try:
+        file_stream = request.files['file']
+        file_content = file_stream.stream.read()
+        job_id = utils.get_unique_id()
+        job_file_id = job_id + "-" + file_stream.filename
+        with open("/tmp/" + job_file_id, "wb") as job_file:
+            job_file.write(file_content)
+        return job_file_id
+    except:
+        return ""
+
+
+def send_query():
+    try:
+        job_id = get_job_file()
+        import subprocess
+        spark_dir = utils.get_os_env('SPARK_DIR')
+        job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/beeline",
+                                                 "-u", get_thrift_server_uri(),
+                                                 "-f", "/tmp/" + job_id],
+                                                universal_newlines=True,
+                                                stdout=subprocess.PIPE)
+        return job_id
+    except:
+        return "Failed!", 500
+
+
+def get_job_status(job_id):
+    if job_id in job_watchers:
+        status = job_watchers[job_id].poll()
+        if status is None:
+            return "Still running...", 200
+        elif status == 0:
+            return "Finished.", 201
+        else:
+            return "Failed!", 500
+    else:
+        return "ID ot found!", 404
+
+
+def get_job_output(job_id):
+    if job_id in job_watchers:
+        def get_output_stream(proc):
+            for line in iter(proc.stdout.readline, ''):
+                yield line.rstrip() + "\n"
+        return Response(get_output_stream(job_watchers[job_id]), mimetype='text/plain')
+    else:
+        return "ID ot found!", 404
 
 logging.basicConfig(level=getattr(logging, 'INFO', None))
 
