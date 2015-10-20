@@ -28,6 +28,11 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, we creat
   * [(Spark SQL user only) Creating hive metastore and loading hive-site.xml config file from S3](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
   * [Build spark distribution package from source code](#build-distribution-package-and-try-it-out)
 * [How To Use -- HTTP REST Call examples](#how-to-use)
+  * [Get cluster info (e.g. master URI, JDBC server URI)](#getting-spark-cluster-info)
+  * [submit Spark SQL query via beeline](#submitting-spark-sql-query-via-beeline)
+  * [submit Spark SQL query via REST API (for robot user for example)](#submitting-spark-sql-query-via-rest-api)
+  * [submit Spark Jar or Python script via spark-submit](#submitting-spark-jar-or-python-script-via-spark-submit)
+  * [submit Spark Jar or Python script via REST API](#submitting-spark-jar-or-python-script-via-rest-api)
 * [TODOs](#todos)
 
 ## Deployment
