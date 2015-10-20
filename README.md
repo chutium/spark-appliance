@@ -19,7 +19,7 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, we creat
 
 ## Usage
 
-You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER``` to select the daemon to be started.
+You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER```, ```START_WEBAPP``` to select the daemon to be started.
 
 Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
 
@@ -40,6 +40,7 @@ sudo docker build -t pierone.example.org/bi/spark:1.5.2-SNAPSHOT .
 sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_THRIFTSERVER="" \
+                -e START_WEBAPP="true" \
                 -e MASTER_STACK_NAME="" \
                 -e CLUSTER_SIZE="1" \
                 -e ZOOKEEPER_STACK_NAME="" \
@@ -61,9 +62,15 @@ senza create spark.yaml singlenode \
              StartMaster=true \
              StartWorker=true \
              StartThriftServer=true \
+             StartWebApp=true \
              HostedZone="teamid.example.org." \
              SSLCertificateId="ARN_of_your_SSL_Certificate"
 ```
+
+```SSLCertificateId``` needed by WebApp to enable HTTPS, and ```HostedZone``` is used for creating Route53 DNS record.
+
+To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as well.
+
 
 #### Cluster mode
 
@@ -74,6 +81,7 @@ senza create spark.yaml master \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
+             StartWebApp=true \
              HostedZone="teamid.example.org." \
              SSLCertificateId="ARN_of_your_SSL_Certificate"
 ```
@@ -92,6 +100,24 @@ senza create spark.yaml worker \
              HostedZone="teamid.example.org." \
              SSLCertificateId="ARN_of_your_SSL_Certificate"
 ```
+
+With above commands, one spark master node will running with ```WebApp```, and 3 spark worker node will be registered to this spark master node.
+
+You can run a ```WebApp``` node separately with following senza command:
+
+```
+senza create spark.yaml webapp \
+             DockerImage=pierone.example.org/bi/spark:1.5.2-SNAPSHOT \
+             ApplicationID=spark \
+             MintBucket=stups-mint-000000000-eu-west-1 \
+             ScalyrKey=XXXYYYZZZ \
+             MasterStackName="spark-master" \
+             StartWebApp=true \
+             HostedZone="teamid.example.org." \
+             SSLCertificateId="ARN_of_your_SSL_Certificate"
+```
+
+That means, just change ```StartWorker=true``` to ```StartWebApp=true```, and remove the ```ClusterSize``` setting, then you should be able to access the WebApp with an URL like: ```https://spark-webapp.teamid.example.org```.
 
 #### HA mode
 
@@ -117,6 +143,7 @@ senza create spark.yaml ha \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
+             StartWebApp=true \
              ClusterSize=3 \
              HostedZone="teamid.example.org." \
              SSLCertificateId="ARN_of_your_SSL_Certificate" \
@@ -127,7 +154,7 @@ Now you get a spark cluster with 3 master and 3 worker nodes.
 
 This senza create command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon process on each node, if you would like to deploy master instances and worker instances separately like by [cluster mode](#cluster-mode), then you need to use two senza create commands.
 
-First, create master stack:
+First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
              DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
@@ -135,6 +162,7 @@ senza create spark.yaml master \
              MintBucket=zalando-stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
+             StartWebApp=true \
              ClusterSize=3 \
              HostedZone="teamid.example.org." \
              SSLCertificateId="ARN_of_your_SSL_Certificate" \
@@ -172,6 +200,7 @@ senza create spark.yaml singlenode \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
+             StartWebApp=true \
              StartThriftServer=true \
              HostedZone="teamid.example.org." \
              SSLCertificateId="ARN_of_your_SSL_Certificate"
@@ -209,6 +238,8 @@ scala> textFile.count
 * ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#7](https://github.com/zalando/spark-appliance/pull/7)
 * WebApp to run Spark SQL queries
 * WebApp to run Spark jars
+* WebApp to run Spark python scripts
+* WebApp to run Spark R -- is this possible? seems not in current version (1.5.2)
 * Add more start/env variables such as -c (--cores) and -m (--memory)
 * Appliance to deploy Spark cluster programmatically
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
