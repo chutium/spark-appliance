@@ -243,6 +243,8 @@ scala> textFile.count
 
 ### getting spark cluster info
 
+If you send the HTTP call from an EC2 instance in the same AWS account for spark-webapp stack, such as on the [Odd](https://stups.io/odd/) server, you can use the REST API of spark-webapp directly:
+
 ```
 host=172.31.xxx.xxx
 curl http://$host:8000/get_master_ip
@@ -260,7 +262,37 @@ curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http
 curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_thrift_server_uri
 ```
 
+### from outside using ssh tunnel or internet-facing ELB
+
+There are two ways to send HTTP call outside of AWS account:
+
+a) create a ssh tunnel to the port 8000 on spark-webapp node via Odd server, then send HTTP call to localhost:
+```
+ssh -L 8000:web_app_node_ip:8000 username@odd-server
+curl http://localhost:8000/get_master_ip
+curl http://localhost:8000/get_master_uri
+```
+
+or
+
+b) create an internet-facing ELB, then you can send HTTPS call to the webapp stack's domain name from anywhere with a valid OAuth2 token
+```
+oauth_token=xxxxx-xxx-xxx-xxx-xxxxx
+host=spark-webapp.teamid.example.org
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" https://$host/get_master_ip
+curl --insecure --request GET --header "Authorization: Bearer $oauth_token" https://$host/get_master_uri
+```
+
 ### submitting Spark SQL query via beeline
+
+To send Spark SQL query directly to the spark-appliance created by senza, you need to create a ssh tunnel to the port 10000 on thrift server node via Odd server at first, after that you can connect to localhost:10000 using beeline:
+
+```
+ssh -L 10000:thrift_server_ip:10000 username@odd-server
+beeline -u jdbc:hive2://localhost:10000/ -f some-hive-query.sql
+```
+
+Or if you use beeline on an EC2 instance in your AWS account, such as on the Odd server, you can use beeline with spark-appliance's URI directly:
 
 ```
 beeline -u $(curl http://$host:8000/get_thrift_server_uri) -f some-hive-query.sql
@@ -281,11 +313,16 @@ curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http
 curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_job_output/$job_id
 ```
 
+If you created an internet-facing ELB, you can submit a Spark SQL query to the webapp stack's domain name from anywhere with a valid OAuth2 token.
+
+
 ### submitting Spark JAR or Python script via spark-submit
+
+For Spark JAR, you need to specify a main class name:
 
 ```spark-submit --class your.main.class --master $(curl http://$host:8000/get_master_uri) your.jar```
 
-or
+For python script, no main class needed:
 
 ```spark-submit --master $(curl http://$host:8000/get_master_uri) your.py```
 
