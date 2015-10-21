@@ -336,13 +336,13 @@ see https://github.com/zalando/spark-appliance/pull/10#issue-112365605
 
 * ~~Spark HA with zookeeper~~ done by PR [#2](https://github.com/zalando/spark-appliance/pull/2), doc: [HA mode with ZooKeeper](#ha-mode)
 * ~~Start Spark cluster with given hive-site.xml~~ done by PR [#3](https://github.com/zalando/spark-appliance/pull/3), doc: [hive metastore and hive-site.xml](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
-* ~~WebApp to get MasterURI (in order to use ```spark-submit```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
-* ~~WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#7](https://github.com/zalando/spark-appliance/pull/7)
-* ~~WebApp to run Spark SQL queries~~ done by PR [#9](https://github.com/zalando/spark-appliance/pull/9), doc see comment in this PR
-* ~~WebApp to run Spark jars~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR74), example jar committed: [spark-textfile-example](https://github.com/zalando/spark-appliance/tree/master/examples/scala/spark-textfile-example), doc see comment in this PR
-* ~~WebApp to run Spark python scripts~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR82), doc see comment in this PR
-* WebApp to run Spark R -- is this possible? seems not in current version (1.5.2)
-* Add more start/env variables such as -c (--cores) and -m (--memory)
+* ~~REST API in WebApp to get MasterURI (in order to use ```spark-submit```)~~ done by PR [#5](https://github.com/zalando/spark-appliance/pull/5)
+* ~~REST API in WebApp to get connection string to ThriftServer (in order to use ```spark-sql``` or ```beeline```)~~ done by PR [#7](https://github.com/zalando/spark-appliance/pull/7)
+* ~~REST API in WebApp to run Spark SQL queries~~ done by PR [#9](https://github.com/zalando/spark-appliance/pull/9), doc see comment in this PR
+* ~~REST API in WebApp to run Spark jars~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR74), example jar committed: [spark-textfile-example](https://github.com/zalando/spark-appliance/tree/master/examples/scala/spark-textfile-example), doc see comment in this PR
+* ~~REST API in WebApp to run Spark python scripts~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR82), doc see comment in this PR
+* REST API in WebApp to run Spark R -- is this possible? seems not in current version (1.5.2), only able to run on interactive shell
+* ~~Send executor settings to WebApp such as core and memory~~ done by PR [#11](https://github.com/zalando/spark-appliance/pull/11), doc see comment in this PR
 * Appliance to deploy Spark cluster programmatically
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * Add code sample for [Cassandra](https://github.com/zalando/stups-cassandra) support
