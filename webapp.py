@@ -35,12 +35,12 @@ def get_thrift_server_uri():
         return "Not found: Thrift server not running!", 404
 
 
-def get_job_file():
+def get_job_id_from_attached_file():
     try:
         file_stream = request.files['file']
         file_content = file_stream.stream.read()
-        job_id = utils.get_unique_id()
-        job_file_id = job_id + "-" + file_stream.filename
+        unique_id = utils.get_unique_id()
+        job_file_id = unique_id + "-" + file_stream.filename
         with open("/tmp/" + job_file_id, "wb") as job_file:
             job_file.write(file_content)
         return job_file_id
@@ -50,9 +50,9 @@ def get_job_file():
 
 def send_query():
     try:
-        job_id = get_job_file()
-        import subprocess
+        job_id = get_job_id_from_attached_file()
         spark_dir = utils.get_os_env('SPARK_DIR')
+        import subprocess
         job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/beeline",
                                                  "-u", get_thrift_server_uri(),
                                                  "-f", "/tmp/" + job_id],
@@ -65,7 +65,8 @@ def send_query():
 
 def submit_application():
     try:
-        job_id = get_job_file()
+        job_id = get_job_id_from_attached_file()
+        job_settings = request.form.get('job_settings', "").split()
         job_args = request.form.get('job_args', "").split()
         main_class = request.form.get('main_class', None)
         spark_dir = utils.get_os_env('SPARK_DIR')
@@ -74,15 +75,15 @@ def submit_application():
             job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/spark-submit",
                                                      "--class", main_class,
                                                      "--master", get_master_uri(),
-                                                     "--jars", "/tmp/" + job_id,
-                                                     "/tmp/" + job_id] + job_args,
+                                                     "--jars", "/tmp/" + job_id] + job_settings +
+                                                    ["/tmp/" + job_id] + job_args,
                                                     universal_newlines=True,
                                                     stdout=subprocess.PIPE)
         else:
             job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/spark-submit",
                                                      "--master", get_master_uri(),
-                                                     "--py-files", "/tmp/" + job_id,
-                                                     "/tmp/" + job_id] + job_args,
+                                                     "--py-files", "/tmp/" + job_id] + job_settings +
+                                                    ["/tmp/" + job_id] + job_args,
                                                     universal_newlines=True,
                                                     stdout=subprocess.PIPE)
         return job_id

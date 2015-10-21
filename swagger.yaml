@@ -83,6 +83,12 @@ paths:
           in: formData
           type: string
           required: false
+        - job_settings:
+          name: job_settings
+          description: Spark settings (whitespace-separated) for Spark App Jar or Python script
+          in: formData
+          type: string
+          required: false
       responses:
         200:
           description: Successful
