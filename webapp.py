@@ -51,11 +51,37 @@ def get_job_id_from_attached_file():
 def send_query():
     try:
         job_id = get_job_id_from_attached_file()
+
+        hive_vars = request.form.get('hive_vars', "").split()
+        arg_hivevar = []
+        if len(hive_vars) > 0:
+            for hive_var in hive_vars:
+                arg_hivevar += ['--hivevar', hive_var]
+
+        hive_confs = request.form.get('hive_confs', "").split()
+        arg_hiveconf = []
+        if len(hive_confs) > 0:
+            for hive_conf in hive_confs:
+                arg_hiveconf += ['--hiveconf', hive_conf]
+
+        application_id = utils.get_os_env('APPLICATION_ID')
+        application_version = utils.get_os_env('APPLICATION_VERSION')
+        hostname = utils.get_os_env('HOSTNAME')
+        default_username = application_id + "-" + application_version + "-" + hostname
+
+        username = request.form.get('username', default_username)
+        arg_username = ['-n', username]
+
+        password = request.form.get('password', "")
+        arg_password = []
+        if password != "":
+            arg_password = ['-p', password]
+
         spark_dir = utils.get_os_env('SPARK_DIR')
         import subprocess
-        job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/beeline",
-                                                 "-u", get_thrift_server_uri(),
-                                                 "-f", "/tmp/" + job_id],
+        job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/beeline", "-u", get_thrift_server_uri()] +
+                                                arg_hivevar + arg_hiveconf + arg_username + arg_password +
+                                                ["-f", "/tmp/" + job_id],
                                                 universal_newlines=True,
                                                 stdout=subprocess.PIPE)
         return job_id

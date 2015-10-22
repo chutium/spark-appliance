@@ -53,6 +53,30 @@ paths:
           in: body
           type: string
           required: true
+        - hive_vars:
+          name: hive_vars
+          description: whitespace-separated list of --hivevar parameters
+          in: formData
+          type: string
+          required: false
+        - hive_confs:
+          name: hive_confs
+          description: whitespace-separated list of --hiveconf parameters
+          in: formData
+          type: string
+          required: false
+        - username:
+          name: username
+          description: username to login
+          in: formData
+          type: string
+          required: false
+        - password:
+          name: password
+          description: password to login
+          in: formData
+          type: string
+          required: false
       responses:
         200:
           description: Successful
