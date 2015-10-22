@@ -315,6 +315,10 @@ curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http
 
 If you created an internet-facing ELB, you can submit a Spark SQL query to the webapp stack's domain name from anywhere with a valid OAuth2 token.
 
+If you need to use parameters in your Spark SQL query, or set a username for sending query, you can use the ```hive_vars, hive_confs, username, password``` parameters by ```send_query``` REST call, see detail in PR [#12](https://github.com/zalando/spark-appliance/pull/12)
+
+By default, the queries will be sent with a combination of ```application_id```, ```application_version``` and ```hostname``` of webapp instance as username, for example: ```spark-webapp-ip-172-31-123-234```
+
 
 ### submitting Spark JAR or Python script via spark-submit
 
