@@ -34,10 +34,28 @@ if utils.get_os_env('HIVE_SITE_XML') != "":
     except:
         logging.error("ERROR: Failed to get hive-site.xml from " + hive_site_xml)
 
+if utils.get_os_env('EXECUTOR_MEMORY') != "":
+    executor_memory = utils.get_os_env('EXECUTOR_MEMORY')
+    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as f:
+        lines = f.read().splitlines()
+        f.seek(0)
+        f.truncate()
+        f.write('spark.executor.memory    ' + executor_memory + '\n')
+        for line in lines:
+            if not line.startswith("spark.executor.memory"):
+                f.write(line + '\n')
+        f.close()
+
 log_watchers = {}
 
 if utils.get_os_env('START_MASTER').lower() == 'true':
     os.environ['SPARK_MASTER_IP'] = utils.get_private_ip()
+    if utils.get_os_env('DEFAULT_CORES') != "":
+        try:
+            default_cores = int(utils.get_os_env('DEFAULT_CORES'))
+            os.environ['SPARK_MASTER_OPTS'] = "-Dspark.deploy.defaultCores=" + str(default_cores)
+        except:
+            logging.warning("Invalid format of DEFAULT_CORES env variable!")
     master_log = subprocess.check_output([spark_dir + "/sbin/start-master.sh"], universal_newlines=True)
     log_watchers['Master'] = subprocess.Popen(["tail", "-f", master_log.rsplit(None, 1)[-1]])
 

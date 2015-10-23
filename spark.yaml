@@ -31,6 +31,12 @@ SenzaInfo:
     - StartThriftServer:
         Description: "Start spark thrift server (HiveServer2) daemon"
         Default: ""
+    - DefaultCores:
+        Description: "Default number of cores to give to applications in Spark's standalone mode"
+        Default: ""
+    - ExecutorMemory:
+        Description: "Amount of memory to use per executor process (e.g. 2g, 8g)"
+        Default: "2g"
     - StartWebApp:
         Description: "Start webapp for spark appliance"
         Default: ""
@@ -93,6 +99,8 @@ SenzaComponents:
           START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
           START_WEBAPP: "{{Arguments.StartWebApp}}"
           MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
+          DEFAULT_CORES: "{{Arguments.DefaultCores}}"
+          EXECUTOR_MEMORY: "{{Arguments.ExecutorMemory}}"
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
 Resources:
