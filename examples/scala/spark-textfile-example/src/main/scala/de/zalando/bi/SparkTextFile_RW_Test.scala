@@ -8,7 +8,7 @@ object SparkTextFile_RW_Test {
   /** Usage: SparkTextFile_RW_Test <input_file> [output_dir] */
   def main(args: Array[String]) {
     if (args.length < 1) {
-      System.err.println("Usage: SparkTextFile_RW_Test <file> [output_dir]")
+      System.err.println("Usage: SparkTextFile_RW_Test <input_file> [output_dir]")
       System.exit(1)
     }
     val sparkConf = new SparkConf().setAppName("SparkTextFile")
