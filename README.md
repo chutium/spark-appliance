@@ -146,9 +146,9 @@ senza create exhibitor-appliance.yaml spark \
 After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
-             DockerImage=pierone.stups.zalan.do/bi/spark:1.5.2-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.5.2-SNAPSHOT \
              ApplicationID=spark \
-             MintBucket=zalando-stups-mint-000000000-eu-west-1 \
+             MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
@@ -166,9 +166,9 @@ This senza create command with ```StartMaster=true``` and ```StartWorker=true```
 First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
              ApplicationID=spark \
-             MintBucket=zalando-stups-mint-000000000-eu-west-1 \
+             MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWebApp=true \
@@ -182,9 +182,9 @@ senza create spark.yaml master \
 Wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
              ApplicationID=spark \
-             MintBucket=zalando-stups-mint-000000000-eu-west-1 \
+             MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartWorker=true \
              ClusterSize=5 \
