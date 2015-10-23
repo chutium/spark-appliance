@@ -5,7 +5,7 @@ A lot of our data analysis workflows are based on EMR, but there are many confli
 
 Since we use AWS S3 as our data storage layer, HDFS is not needed, and if we use Spark, MapReduce framework and YARN resource management toolbox as part of traditional Hadoop Ecosystem are not needed either.
 
-Therefore we can use Spark standalone cluster without Hadoop stacks, so that it will be easier to make it work in STUPS AWS environment.
+Therefore we can use Spark standalone cluster without Hadoop stacks, it will be easier to make it work in STUPS AWS environment.
 
 ## EMRFS support
 
@@ -15,7 +15,7 @@ As mentioned we use AWS S3 as data storage, original Spark is working with Hadoo
 
 Our [Senza](https://stups.io/senza/) appliances are running on the EC2 instances with appropriate IAM roles, we do not want to distribute or embed long-term AWS security credentials within an instance or application.
 
-So we need to integrate the implementation of Amazon's EMRFS and Spark, we created [a branch for this](https://github.com/zalando/spark/tree/branch-1.5-zalando) in our github account.
+So we need to integrate the implementation of Amazon's EMRFS and Spark, for that we created [a branch for this](https://github.com/zalando/spark/tree/branch-1.5-zalando) in our github account.
 
 # Usage
 
@@ -50,8 +50,8 @@ sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_THRIFTSERVER="" \
                 -e START_WEBAPP="true" \
-                -e MASTER_STACK_NAME="" \
                 -e CLUSTER_SIZE="1" \
+                -e MASTER_STACK_NAME="" \
                 -e ZOOKEEPER_STACK_NAME="" \
                 -e HIVE_SITE_XML="" \
                 --net=host \
@@ -161,7 +161,7 @@ senza create spark.yaml ha \
 
 Now you get a spark cluster with 3 master and 3 worker nodes.
 
-This senza create command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon process on each node, if you would like to deploy master instances and worker instances separately like by [cluster mode](#cluster-mode), then you need to use two senza create commands.
+This senza create command with ```StartMaster=true``` and ```StartWorker=true``` will start both master daemon process and worker daemon process on each node, if you would like to deploy master instances and worker instances separately like [cluster mode](#cluster-mode), then you need to use two senza create commands.
 
 First, create spark master + webapp stack:
 ```
@@ -177,9 +177,9 @@ senza create spark.yaml master \
              SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark"
 ```
-(only different is, here you do not set ```StartWorker=true```. Moreover, the thrift server must be started on one of master instances, so if you want to use thrift server, you should set ```StartThriftServer=true``` here.)
+(only different is, here you do not set ```StartWorker=true```. Moreover, the thrift server must be started on one of master instances, so if you want to use thrift server, you should set ```StartThriftServer=true``` here. And to enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as well.)
 
-And wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
+Wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
              DockerImage=pierone.stups.zalan.do/bi/spark:0.1-SNAPSHOT \
@@ -196,11 +196,11 @@ senza create spark.yaml worker \
 
 ### Creating hive metastore and loading hive-site xml config file from S3
 
-To use [Spark SQL](http://spark.apache.org/sql/), we suggest you create a [hive metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore), and put the DB connection settings in a hive-site.xml file, there are a lot of good documents for creating hive metastore and hive-site.xml, since we are using AWS environment, we can use RDS service and you can take a look the document from AWS for [creating hive metastore located in Amazon RDS](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-dev-create-metastore-outside.html).
+To use [Spark SQL](http://spark.apache.org/sql/), we suggest you to create a [hive metastore](https://cwiki.apache.org/confluence/display/Hive/Design#Design-Metastore), and put the DB connection settings in a ```hive-site.xml``` file, there are a lot of good documents for creating hive metastore and setting hive-site.xml, since we are using AWS environment, we can use RDS service and you can take a look the document from AWS for [creating hive metastore located in Amazon RDS](http://docs.aws.amazon.com/ElasticMapReduce/latest/DeveloperGuide/emr-dev-create-metastore-outside.html).
 
 Currently the spark appliance support MySQL or PostgreSQL database as hive metastore, and due to security policies, make sure that you created the RDS instance with ```Subnet Group: internal```, ```Publicly Accessible: no```, and right Security groups.
 
-Once you have this hive-site.xml, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
+Once you created ```hive-site.xml```, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
 ```
 senza create spark.yaml singlenode \
              DockerImage=pierone.example.org/bi/spark:0.1-SNAPSHOT \
@@ -230,6 +230,7 @@ Then you will get a Spark distribution with EMRFS support. Put this package in t
 cd $SPARK_HOME
 mv conf/core-site.xml.zalando conf/core-site.xml
 mv conf/emrfs-default.xml.zalando conf/emrfs-default.xml
+mv conf/spark-defaults.conf.zalando conf/spark-defaults.conf
 mv conf/spark-env.sh.zalando conf/spark-env.sh
 
 aws s3 cp README.md s3://some-bucket/
@@ -275,7 +276,7 @@ curl http://localhost:8000/get_master_uri
 
 or
 
-b) create an internet-facing ELB, then you can send HTTPS call to the webapp stack's domain name from anywhere with a valid OAuth2 token
+b) same as other STUPS appliances, spark appliance will create an ```Route53``` domain name record which redirect to an ```internet-facing ELB``` with HTTPS protocal after ```senza create``` complete, so you can send HTTPS call to the domain name of webapp stack from anywhere with a valid OAuth2 token (if you enabled OAuth2)
 ```
 oauth_token=xxxxx-xxx-xxx-xxx-xxxxx
 host=spark-webapp.teamid.example.org
@@ -313,7 +314,7 @@ curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http
 curl --insecure --request GET --header "Authorization: Bearer $oauth_token" http://$host:8000/get_job_output/$job_id
 ```
 
-If you created an internet-facing ELB, you can submit a Spark SQL query to the webapp stack's domain name from anywhere with a valid OAuth2 token.
+And you can submit a Spark SQL query to the webapp stack's Route53 domain name record from anywhere with a valid OAuth2 token.
 
 If you need to use parameters in your Spark SQL query, or set a username for sending query, you can use the ```hive_vars, hive_confs, username, password``` parameters by ```send_query``` REST call, see detail in PR [#12](https://github.com/zalando/spark-appliance/pull/12)
 
