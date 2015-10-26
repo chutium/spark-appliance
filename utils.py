@@ -10,11 +10,8 @@ region = None
 
 
 def get_os_env(name):
-    os_env = os.getenv(name)
-    if os_env is not None:
-        return os_env.strip()
-    else:
-        return ""
+    os_env = os.getenv(name, "")
+    return os_env.strip()
 
 
 def set_ec2_identities():

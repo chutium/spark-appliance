@@ -49,6 +49,9 @@ SenzaInfo:
     - TokenInfoURL:
         Description: "TokenInfo service URL"
         Default: ""
+    - Oauth2Scope:
+        Description: "OAuth2 scope to access the WebApp"
+        Default: "uid"
     - HostedZone:
         Description: "Hosted Zone in which Stups deploys"
         Default: ""
@@ -103,6 +106,7 @@ SenzaComponents:
           EXECUTOR_MEMORY: "{{Arguments.ExecutorMemory}}"
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
+          OAUTH2_SCOPE: "{{Arguments.Oauth2Scope}}"
 Resources:
   SparkRole:
     Type: AWS::IAM::Role
