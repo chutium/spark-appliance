@@ -141,7 +141,9 @@ def get_job_output(job_id):
 
 logging.basicConfig(level=getattr(logging, 'INFO', None))
 
-api_args = {'auth_url': utils.get_os_env('AUTH_URL'), 'tokeninfo_url': utils.get_os_env('TOKENINFO_URL')}
+api_args = {'auth_url': utils.get_os_env('AUTH_URL'),
+            'tokeninfo_url': utils.get_os_env('TOKENINFO_URL'),
+            'oauth2_scope': utils.get_os_env('OAUTH2_SCOPE')}
 webapp = connexion.App(__name__, port=8000, debug=True, server='gevent')
 webapp.add_api('swagger.yaml', arguments=api_args)
 application = webapp.app
