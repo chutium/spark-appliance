@@ -22,6 +22,9 @@ SenzaInfo:
     - HiveSite:
         Description: "Which hive-site.xml file should be used?"
         Default: ""
+    - ExtJars:
+        Description: "Which external jar files (comma-separated) should be used?"
+        Default: ""
     - StartMaster:
         Description: "Start spark master daemon"
         Default: ""
@@ -104,6 +107,7 @@ SenzaComponents:
           MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
           DEFAULT_CORES: "{{Arguments.DefaultCores}}"
           EXECUTOR_MEMORY: "{{Arguments.ExecutorMemory}}"
+          EXT_JARS: "{{Arguments.ExtJars}}"
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
           OAUTH2_SCOPE: "{{Arguments.Oauth2Scope}}"

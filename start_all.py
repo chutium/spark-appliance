@@ -34,6 +34,19 @@ if utils.get_os_env('HIVE_SITE_XML') != "":
     except:
         logging.error("ERROR: Failed to get hive-site.xml from " + hive_site_xml)
 
+if utils.get_os_env('EXT_JARS') != "":
+    ext_jars = utils.get_os_env('EXT_JARS').split(',')
+    s3 = boto3.resource('s3')
+    for jar in ext_jars:
+        path = jar[5:]
+        bucket = path[:path.find('/')]
+        file_key = path[path.find('/')+1:]
+        try:
+            s3.meta.client.download_file(bucket, file_key, spark_dir + '/auxlib/' + file_key)
+            logging.info("Got external jar from " + jar)
+        except:
+            logging.error("ERROR: Failed to get external jar " + hive_site_xml)
+
 if utils.get_os_env('EXECUTOR_MEMORY') != "":
     executor_memory = utils.get_os_env('EXECUTOR_MEMORY')
     with open(spark_dir + '/conf/spark-defaults.conf', "r+") as f:
