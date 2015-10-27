@@ -41,11 +41,12 @@ if utils.get_os_env('EXT_JARS') != "":
         path = jar[5:]
         bucket = path[:path.find('/')]
         file_key = path[path.find('/')+1:]
+        file_name = path[path.rfind('/')+1:]
         try:
-            s3.meta.client.download_file(bucket, file_key, spark_dir + '/auxlib/' + file_key)
+            s3.meta.client.download_file(bucket, file_key, spark_dir + '/auxlib/' + file_name)
             logging.info("Got external jar from " + jar)
         except:
-            logging.error("ERROR: Failed to get external jar " + hive_site_xml)
+            logging.error("ERROR: Failed to get external jar " + jar)
 
 if utils.get_os_env('EXECUTOR_MEMORY') != "":
     executor_memory = utils.get_os_env('EXECUTOR_MEMORY')
