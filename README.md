@@ -348,7 +348,9 @@ see https://github.com/zalando/spark-appliance/pull/10#issue-112365605
 * ~~REST API in WebApp to run Spark python scripts~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR82), doc see comment in this PR
 * REST API in WebApp to run Spark R -- is this possible? seems not in current version (1.5.2), only able to run on interactive shell
 * ~~Send executor settings to WebApp such as core and memory~~ done by PR [#11](https://github.com/zalando/spark-appliance/pull/11), doc see comment in this PR
-* Appliance to deploy Spark cluster programmatically
+* Integrate with Ro2Key to deploy Spark cluster programmatically
+* Enable history server and store application histories on s3
+* Spark SQL server log should be stored on s3
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * Add code sample for [Cassandra](https://github.com/zalando/stups-cassandra) support
 * Add code sample for postgres/[Spilo](https://github.com/zalando/spilo) support
