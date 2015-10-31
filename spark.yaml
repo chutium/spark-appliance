@@ -6,7 +6,7 @@ SenzaInfo:
     - ApplicationID:
         Description: "The application ID according to Yourturn/Kio"
     - MintBucket:
-        Description: "Mint Bucket of buku."
+        Description: "Mint Bucket of Spark application"
     - ScalyrKey:
         Description: "The API key of Scalyr logging service used by Taupage"
         Default: ""
@@ -56,7 +56,7 @@ SenzaInfo:
         Description: "OAuth2 scope to access the WebApp"
         Default: "uid"
     - HostedZone:
-        Description: "Hosted Zone in which Stups deploys"
+        Description: "Hosted Zone in which STUPS deploys"
         Default: ""
     - SSLCertificateId:
         Description: "ARN of your SSL Certificate which will be used for ELB"
