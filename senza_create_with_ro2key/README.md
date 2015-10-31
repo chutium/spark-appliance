@@ -1,3 +1,6 @@
+To enable robot user to create spark cluster with ```senza create```, we need to deploy a [Ro2Key](https://github.com/zalando/ro2key) application with an  ```IAM-role``` with permissions for senza-create.
+
+Use following script to create this ```IAM-role``` with name ```senza-create-spark```, change the IDs (AWS account ID, etc.) to yours.
 ```
 DIR=$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )
 aws iam create-role --role-name senza-create-spark --assume-role-policy-document file://$DIR/policy_trust.json
@@ -5,7 +8,7 @@ aws iam put-role-policy --role-name senza-create-spark --policy-name MintBucketA
 aws iam put-role-policy --role-name senza-create-spark --policy-name AssumeRoleByItSelf --policy-document file://$DIR/policy_assumerole.json
 ```
 
-
+Then we need to deploy ro2key manually, after login with [mai](https://stups.io/mai), use following command:
 ```
 senza create https://raw.githubusercontent.com/zalando/ro2key/master/ro2key.yaml senzacreatespark \
              DockerImage=pierone.example.org/teamid/ro2key:0.3-SNAPSHOT \
@@ -21,7 +24,9 @@ senza create https://raw.githubusercontent.com/zalando/ro2key/master/ro2key.yaml
              SSLCertificateId="arn:aws:iam::123456789:server-certificate/your_ssl_cert"
 ```
 
+Now you can use following script to deploy Spark cluster programmatically by robot user.
 
+(If your legacy system do not configured [berry](https://stups.io/berry) daemon, you can create a IAM-user in your AWS account with a IAM-policy of read-only permission on the ```mint bucket folder of ro2key```, then use its AWS credential to get the JSON files of application)
 ```
 AWS_ACCESS_KEY_ID=id_of_mint_bucket_readonly_user AWS_SECRET_ACCESS_KEY=secret_key_of_mint_bucket_readonly_user AWS_SESSION_TOKEN="" aws s3 cp --region eu-west-1 s3://zalando-stups-mint-123456789-eu-west-1/teamid-ro2key/client.json .
 AWS_ACCESS_KEY_ID=id_of_mint_bucket_readonly_user AWS_SECRET_ACCESS_KEY=secret_key_of_mint_bucket_readonly_user AWS_SESSION_TOKEN="" aws s3 cp --region eu-west-1 s3://zalando-stups-mint-123456789-eu-west-1/teamid-ro2key/user.json .
