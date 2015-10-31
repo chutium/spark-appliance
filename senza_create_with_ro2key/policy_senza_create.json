@@ -1,0 +1,24 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Sid": "AllowMintRead",
+            "Effect": "Allow",
+            "Action": "s3:GetObject",
+            "Resource": "arn:aws:s3:::zalando-stups-mint-123456789-eu-west-1/teamid-ro2key/*"
+        },
+        {
+            "Sid": "SenzaCreate",
+            "Resource": "*",
+            "Effect": "Allow",
+            "Action": [
+                "iam:*",
+                "cloudformation:*",
+                "ec2:*",
+                "route53:*",
+                "elasticloadbalancing:*",
+                "autoscaling:*"
+            ]
+        }
+    ]
+}
