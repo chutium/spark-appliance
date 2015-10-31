@@ -22,6 +22,7 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, for that
 * [Deployment with Docker and/or Senza](#deployment)
   * [Docker locally](#running-with-docker-locally)
   * [Deploying with Senza](#deploying-with-senza)
+    * [Description of senza parameters](#description-of-senza-parameters)
     * [Single node (all in one)](#deploying-on-single-node)
     * [Cluster mode](#cluster-mode)
     * [HA mode with ZooKeeper](#ha-mode)
@@ -59,6 +60,31 @@ sudo docker run -e START_MASTER="true" \
 ```
 
 ### Deploying with Senza
+
+#### Description of senza parameters
+| Senza Parameter | Docker ENV variable | Default value | Mandatory | Description |
+| ------------- | ----------- | ----------- | ----------- |----------- |
+| DockerImage   |  |  | Yes | Docker image path with version tag of Spark |
+| ApplicationID |  |  | Yes | The application ID according to Yourturn/Kio |
+| MintBucket    |  |  | Yes | Mint Bucket of Spark application |
+| ScalyrKey     |  | "" | No | The API key of Scalyr logging service used by Taupage |
+| InstanceType  |  | t2.medium | No | The instance type for the nodes of cluster |
+| ClusterSize   | CLUSTER_SIZE | 1 | No | The initial size (number of nodes) for the Spark cluster |
+| StartMaster   | START_MASTER | "" | No | Start spark master daemon |
+| StartWorker   | START_WORKER | "" | No | Start spark worker daemon |
+| StartThriftServer | START_THRIFTSERVER | "" | No | Start spark thrift server (HiveServer2) daemon |
+| StartWebApp | START_WEBAPP | "" | No | Start webapp for spark appliance |
+| ZookeeperStackName | ZOOKEEPER_STACK_NAME | "" | No | Which ZooKeeper Stack should be used? |
+| MasterStackName | MASTER_STACK_NAME | "" | No | Spark Master stack name, e.g. spark-master |
+| DefaultCores | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
+| ExecutorMemory| EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
+| HiveSite     | HIVE_SITE_XML | "" | No | Which hive-site.xml file should be used? |
+| ExtJars      | EXT_JARS | "" | No | Which external jar files (comma-separated) should be used? |
+| AuthURL      | AUTH_URL | "" | No | OAuth2 service URL |
+| TokenInfoURL | TOKENINFO_URL | "" | No | TokenInfo service URL |
+| Oauth2Scope  | OAUTH2_SCOPE  | uid | No | OAuth2 scope to access the WebApp |
+| HostedZone   |  | "" | No | Hosted Zone in which STUPS deploys |
+| SSLCertificateId |  | "" | No | ARN of your SSL Certificate which will be used for ELB |
 
 #### Deploying on single node
 
@@ -348,7 +374,7 @@ see https://github.com/zalando/spark-appliance/pull/10#issue-112365605
 * ~~REST API in WebApp to run Spark python scripts~~ done by [commit in PR #10](https://github.com/zalando/spark-appliance/pull/10/files#diff-e3c098dce5f8e4cc400b229d92ecf24cR82), doc see comment in this PR
 * REST API in WebApp to run Spark R -- is this possible? seems not in current version (1.5.2), only able to run on interactive shell
 * ~~Send executor settings to WebApp such as core and memory~~ done by PR [#11](https://github.com/zalando/spark-appliance/pull/11), doc see comment in this PR
-* Integrate with Ro2Key to deploy Spark cluster programmatically
+* ~~Integrate with Ro2Key to deploy Spark cluster programmatically~~ done by PR [#18](https://github.com/zalando/spark-appliance/pull/18)
 * Enable history server and store application histories on s3
 * Spark SQL server log should be stored on s3
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
