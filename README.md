@@ -80,9 +80,9 @@ sudo docker run -e START_MASTER="true" \
 | ExecutorMemory| EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
 | HiveSite     | HIVE_SITE_XML | "" | No | Which hive-site.xml file should be used? |
 | ExtJars      | EXT_JARS | "" | No | Which external jar files (comma-separated) should be used? such as for UDFs or external drivers |
-| AuthURL      | AUTH_URL | "" | No | (Only needed when ```StartWebApp=true```) OAuth2 service URL |
-| TokenInfoURL | TOKENINFO_URL | "" | No | (Only needed when ```StartWebApp=true```)`TokenInfo service URL |
-| Oauth2Scope  | OAUTH2_SCOPE  | uid | No | (Only needed when ```StartWebApp=true```) OAuth2 scope to access the WebApp |
+| AuthURL      | AUTH_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 service URL |
+| TokenInfoURL | TOKENINFO_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) TokenInfo service URL |
+| Oauth2Scope  | OAUTH2_SCOPE  | uid | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 scope to access the WebApp |
 | HostedZone   |  | "" | No | Hosted Zone in which STUPS deploys |
 | SSLCertificateId |  | "" | No | ARN of your SSL Certificate which will be used for ELB, to find out your SSL certificate's IDs, execute the following command: ```aws iam list-server-certificates``` |
 
