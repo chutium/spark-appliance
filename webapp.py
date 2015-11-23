@@ -3,7 +3,6 @@
 import logging
 import connexion
 from flask import request
-from flask import Response
 import utils
 
 utils.set_ec2_identities()
@@ -130,12 +129,22 @@ def get_job_status(job_id):
         return "ID ot found!", 404
 
 
+def get_output_stream(proc):
+    retval = ""
+    for line in iter(proc.stdout.readline, ''):
+        retval += line.rstrip() + "\n"
+    return retval
+
+
 def get_job_output(job_id):
     if job_id in job_watchers:
-        def get_output_stream(proc):
-            for line in iter(proc.stdout.readline, ''):
-                yield line.rstrip() + "\n"
-        return Response(get_output_stream(job_watchers[job_id]), mimetype='text/plain')
+        status = job_watchers[job_id].poll()
+        if status is None:
+            return "Job is still running, try again later.", 404
+        elif status == 0:
+            return get_output_stream(job_watchers[job_id]), 200
+        else:
+            return "Job failed!\n" + get_output_stream(job_watchers[job_id]), 500
     else:
         return "ID ot found!", 404
 
