@@ -119,7 +119,9 @@ if utils.get_os_env('START_THRIFTSERVER').lower() == 'true':
         thriftserver_log = subprocess.check_output([spark_dir + "/sbin/start-thriftserver.sh",
                                                     "--master", master_uri,
                                                     "--hiveconf", "hive.server2.thrift.port=10000",
-                                                    "--hiveconf", "hive.server2.thrift.bind.host=0.0.0.0"],
+                                                    "--hiveconf", "hive.server2.thrift.bind.host=0.0.0.0",
+                                                    "--hiveconf", "hive.server2.logging.operation.enabled=false",
+                                                    "--hiveconf", "hive.server2.logging.operation.log.location=/tmp"],
                                                    universal_newlines=True)
         log_watchers['ThriftServer'] = subprocess.Popen(["tail", "-f", thriftserver_log.rsplit(None, 1)[-1]])
 
