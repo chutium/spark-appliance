@@ -28,7 +28,8 @@ So we need to integrate the implementation of Amazon's EMRFS and Spark, for that
     * [HA mode with ZooKeeper](#ha-mode)
   * [(Spark SQL user only) Creating hive metastore and loading hive-site.xml config file from S3](#creating-hive-metastore-and-loading-hive-site-xml-config-file-from-s3)
   * [Build spark distribution package from source code](#build-distribution-package-and-try-it-out)
-* [How To Use -- HTTP REST Call examples](#how-to-use)
+* [How To Use -- HTTP REST API and  Call examples](#how-to-use)
+  * [List of REST APIs](#list-of-rest-apis)
   * [Get cluster info (e.g. master URI, JDBC server URI)](#getting-spark-cluster-info)
   * [submit Spark SQL query via beeline](#submitting-spark-sql-query-via-beeline)
   * [submit Spark SQL query via REST API (for robot user for example)](#submitting-spark-sql-query-via-rest-api)
@@ -267,6 +268,21 @@ scala> textFile.count
 ```
 
 ## How to use
+
+### List of REST APIs
+
+spark-appliance provides following APIs:
+
+| HTTP Method | Endpoint | Description |
+| ----------- | -------- | ----------- |
+| GET         | /get_master_ip | Get IP of spark master node or current alive Spark master in HA mode |
+| GET         | /get_master_uri | Get URI of Spark master (master string for submitting spark applications, e.g. ```spark://127.0.0.1:7077```, or ```spark://192.168.0.1:7077,192.168.0.2:7077``` in HA mode) |
+| GET         | /get_thrift_server_uri | Get URI of Spark thrift server (JDBC connection string for client, e.g. ```jdbc:hive2://127.0.0.1:10000/```) |
+| POST        | /send_query | Send Spark SQL query to the cluster |
+| POST        | /submit_application | Submit Spark application (JAR or Python script) to the cluster |
+| GET         | /get_job_status/{job_id} | Get status of a submitted Spark application or SQL query |
+| GET         | /get_job_output/{job_id} | Get outputs of a submitted Spark application or SQL query |
+
 
 ### getting spark cluster info
 
