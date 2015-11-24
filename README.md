@@ -283,6 +283,7 @@ scala> textFile.count
 | GET         | /get_job_status/{job_id} | Get status of a submitted Spark application or SQL query |
 | GET         | /get_job_output/{job_id} | Get outputs of a submitted Spark application or SQL query |
 
+This is only a list of API names, for more detail, such as parameters, please check the swagger definitions in [swagger.yaml](https://github.com/zalando/spark-appliance/blob/master/swagger.yaml).
 
 ### getting spark cluster info
 
