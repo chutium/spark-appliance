@@ -271,7 +271,7 @@ scala> textFile.count
 
 ### List of REST APIs
 
-spark-appliance provides following APIs:
+[WebApp](https://github.com/zalando/spark-appliance/blob/master/webapp.py) of spark-appliance provides following APIs:
 
 | HTTP Method | Endpoint | Description |
 | ----------- | -------- | ----------- |
