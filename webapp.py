@@ -76,9 +76,8 @@ def send_query():
         if password != "":
             arg_password = ['-p', password]
 
-        spark_dir = utils.get_os_env('SPARK_DIR')
         import subprocess
-        job_watchers[job_id] = subprocess.Popen([spark_dir + "/bin/beeline", "-u", get_thrift_server_uri()] +
+        job_watchers[job_id] = subprocess.Popen(["/opt/beeline/beeline", "-u", get_thrift_server_uri()] +
                                                 arg_hivevar + arg_hiveconf + arg_username + arg_password +
                                                 ["-f", "/tmp/" + job_id],
                                                 universal_newlines=True,
