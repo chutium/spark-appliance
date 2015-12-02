@@ -16,7 +16,7 @@ RUN wget https://s3-eu-west-1.amazonaws.com/zalando-spark/${SPARK_PACKAGE}.tgz -
  && mv $SPARK_DIR/conf/emrfs-default.xml.zalando $SPARK_DIR/conf/emrfs-default.xml \
  && mv $SPARK_DIR/conf/spark-defaults.conf.zalando $SPARK_DIR/conf/spark-defaults.conf \
  && mv $SPARK_DIR/conf/spark-env.sh.zalando $SPARK_DIR/conf/spark-env.sh \
- && mkdir /tmp/s3 && chmod -R 777 /tmp
+ && mkdir /tmp/s3 && mkdir /tmp/spark-events && chmod -R 777 /tmp
 
 COPY beeline.tar.gz /tmp/
 RUN tar zxf /tmp/beeline.tar.gz -C /opt
