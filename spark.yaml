@@ -72,6 +72,8 @@ SenzaComponents:
         Minimum: "{{Arguments.ClusterSize}}"
         Maximum: "{{Arguments.ClusterSize}}"
         MetricType: CPU
+        ScaleUpThreshold: 70
+        ScaleDownThreshold: 40
       HealthCheckType: ELB
       ElasticLoadBalancer: AppLoadBalancer
       LoadBalancerNames:
@@ -95,6 +97,10 @@ SenzaComponents:
         networking: host
         mint_bucket: '{{Arguments.MintBucket}}'
         scalyr_account_key: "{{Arguments.ScalyrKey}}"
+        #configure logrotate for application.log
+        application_logrotate_size: 10M
+        application_logrotate_interval: hourly
+        application_logrotate_rotate: 4
         enhanced_cloudwatch_metrics: true
         environment:
           CLUSTER_SIZE: "{{Arguments.ClusterSize}}"
@@ -155,22 +161,34 @@ Resources:
             Action: "cloudwatch:PutMetricData"
             Resource: "*"
   SparkSecGroup:
+      Type: AWS::EC2::SecurityGroup
+      Properties:
+        GroupDescription: Spark Appliance Security Group
+        SecurityGroupIngress:
+          - IpProtocol: tcp
+            FromPort: 1024
+            ToPort: 65535
+            SourceSecurityGroupId:
+              Fn::GetAtt:
+                - SparkLBSecGroup
+                - GroupId
+          - IpProtocol: tcp
+            FromPort: 22
+            ToPort: 22
+            CidrIp: 0.0.0.0/0
+          - IpProtocol: tcp
+            FromPort: 80
+            ToPort: 80
+            SourceSecurityGroupId:
+              Fn::GetAtt:
+                - SparkLBSecGroup
+                - GroupId
+
+  SparkLBSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: Spark Appliance Security Group
+      GroupDescription: LB Spark Appliance Security Group
       SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 1024
-          ToPort: 65535
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 22
-          ToPort: 22
-          CidrIp: 0.0.0.0/0
-        - IpProtocol: tcp
-          FromPort: 80
-          ToPort: 80
-          CidrIp: 0.0.0.0/0
         - IpProtocol: tcp
           FromPort: 443
           ToPort: 443
@@ -193,14 +211,14 @@ Resources:
           InstanceProtocol: HTTP
           SSLCertificateId: "{{Arguments.SSLCertificateId}}"
       SecurityGroups:
-        - "Fn::GetAtt" : [ "SparkSecGroup" , "GroupId" ]
+        - "Fn::GetAtt" : [ "SparkLBSecGroup" , "GroupId" ]
       Scheme: internet-facing
       Subnets:
         Fn::FindInMap:
           - LoadBalancerSubnets
           - Ref: AWS::Region
           - Subnets
-  Route53VesionedDomainRecord:
+  Route53VersionedDomainRecord:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneName: "{{Arguments.HostedZone}}"

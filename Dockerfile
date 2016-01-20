@@ -1,6 +1,8 @@
 FROM zalando/python:3.4.0-4
 MAINTAINER Teng Qiu <teng.qiu@zalando.de>
 
+COPY scm-source.json /
+
 ENV SPARK_VERSION="1.5.3-SNAPSHOT" HADOOP_VERSION="2.6.0"
 ENV SPARK_PACKAGE="spark-${SPARK_VERSION}-bin-${HADOOP_VERSION}"
 ENV SPARK_DIR="/opt/${SPARK_PACKAGE}"
