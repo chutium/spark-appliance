@@ -1,5 +1,7 @@
+Description: "{{Arguments.ApplicationID}} version {{Arguments.version}}"
+
 SenzaInfo:
-  StackName: spark
+  StackName: "{{Arguments.ApplicationID}}"
   Parameters:
     - DockerImage:
         Description: "Docker image path with version tag of Spark"
@@ -163,31 +165,26 @@ Resources:
   SparkSecGroup:
       Type: AWS::EC2::SecurityGroup
       Properties:
-        GroupDescription: Spark Appliance Security Group
+        GroupDescription: "Spark Appliance Security Group for {{Arguments.ApplicationID}}-{{Arguments.version}}"
+        Tags:
+          - Key: "Name"
+            Value: "{{Arguments.ApplicationID}}-{{Arguments.version}}-app"
         SecurityGroupIngress:
           - IpProtocol: tcp
             FromPort: 1024
             ToPort: 65535
-            SourceSecurityGroupId:
-              Fn::GetAtt:
-                - SparkLBSecGroup
-                - GroupId
+            CidrIp: 0.0.0.0/0
           - IpProtocol: tcp
             FromPort: 22
             ToPort: 22
             CidrIp: 0.0.0.0/0
-          - IpProtocol: tcp
-            FromPort: 80
-            ToPort: 80
-            SourceSecurityGroupId:
-              Fn::GetAtt:
-                - SparkLBSecGroup
-                - GroupId
-
   SparkLBSecGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
-      GroupDescription: LB Spark Appliance Security Group
+      GroupDescription: "LB Spark Appliance Security Group for {{Arguments.ApplicationID}}-{{Arguments.version}}"
+      Tags:
+        - Key: "Name"
+          Value: "{{Arguments.ApplicationID}}-{{Arguments.version}}-lb"
       SecurityGroupIngress:
         - IpProtocol: tcp
           FromPort: 443
@@ -196,7 +193,7 @@ Resources:
   AppLoadBalancer:
     Type: AWS::ElasticLoadBalancing::LoadBalancer
     Properties:
-      LoadBalancerName: "{{SenzaInfo.StackName}}-{{Arguments.version}}"
+      LoadBalancerName: "{{Arguments.ApplicationID}}-{{Arguments.version}}"
       CrossZone: true
       HealthCheck:
         Target: TCP:7077
@@ -222,7 +219,7 @@ Resources:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneName: "{{Arguments.HostedZone}}"
-      Name: "{{SenzaInfo.StackName}}-{{Arguments.version}}.{{Arguments.HostedZone}}"
+      Name: "{{Arguments.ApplicationID}}-{{Arguments.version}}.{{Arguments.HostedZone}}"
       Type: CNAME
       TTL: 20
       ResourceRecords:
