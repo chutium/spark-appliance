@@ -10,6 +10,14 @@ private_ip = utils.get_private_ip()
 job_watchers = {}
 
 
+def get_dummy():
+    return "It works."
+
+
+def get_twintip():
+    return "{}"
+
+
 def get_master_uri():
     master_uri = utils.generate_master_uri()
     if master_uri != "":

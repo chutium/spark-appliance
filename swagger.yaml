@@ -7,6 +7,28 @@ consumes:
 produces:
   - text/plain
 paths:
+  /:
+    get:
+      summary: Check for authorization
+      security:
+        - oauth2: ["{{oauth2_scope}}"]
+      operationId: webapp.get_dummy
+      responses:
+        200:
+          description: It's working
+        401:
+          description: Unauthorized
+  /.well-known/schema-discovery:
+    get:
+      summary: Endpoint for TWINTIP
+      security:
+        - oauth2: ["{{oauth2_scope}}"]
+      operationId: webapp.get_twintip
+      responses:
+        200:
+          description: It's working
+        401:
+          description: Unauthorized
   /get_master_uri:
     get:
       summary: Get URI of Spark masters
