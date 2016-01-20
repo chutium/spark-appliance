@@ -218,7 +218,7 @@ Resources:
           - LoadBalancerSubnets
           - Ref: AWS::Region
           - Subnets
-  Route53VesionedDomainRecord:
+  Route53VersionedDomainRecord:
     Type: AWS::Route53::RecordSet
     Properties:
       HostedZoneName: "{{Arguments.HostedZone}}"
