@@ -15,7 +15,9 @@ As mentioned we use AWS S3 as data storage, original Spark is working with Hadoo
 
 Our [Senza](https://stups.io/senza/) appliances are running on the EC2 instances with appropriate IAM roles, we do not want to distribute or embed long-term AWS security credentials within an instance or application.
 
-So we need to integrate the implementation of Amazon's EMRFS and Spark, for that we created [a branch for this](https://github.com/zalando/spark/tree/branch-1.5-zalando) in our github account.
+So we need to integrate the implementation of Amazon's EMRFS and Spark, for that we created [a branch for this](https://github.com/zalando/spark/tree/branch-1.6-zalando) in our github account.
+
+Check the changes: https://github.com/apache/spark/compare/branch-1.6...zalando:branch-1.6-zalando
 
 # Usage
 
