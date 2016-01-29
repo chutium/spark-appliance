@@ -45,6 +45,9 @@ SenzaInfo:
     - StartWebApp:
         Description: "Start webapp for spark appliance"
         Default: ""
+    - StartNotebook:
+        Description: "Start web-based notebook for spark"
+        Default: ""
     - MasterStackName:
         Description: "Spark Master stack name, e.g. spark-master"
         Default: ""
@@ -112,6 +115,7 @@ SenzaComponents:
           START_WORKER: "{{Arguments.StartWorker}}"
           START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
           START_WEBAPP: "{{Arguments.StartWebApp}}"
+          START_NOTEBOOK: "{{Arguments.StartNotebook}}"
           MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
           DEFAULT_CORES: "{{Arguments.DefaultCores}}"
           EXECUTOR_MEMORY: "{{Arguments.ExecutorMemory}}"

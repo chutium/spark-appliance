@@ -129,6 +129,12 @@ if utils.get_os_env('START_WEBAPP').lower() == 'true':
     logging.info("Daemon started, starting webapp now...")
     log_watchers['WebApp'] = subprocess.Popen(["uwsgi", "--http", ":8000", "-w", "webapp"])
 
+sleep(30)
+
+if utils.get_os_env('START_NOTEBOOK').lower() == 'true':
+    logging.info("Daemon started, starting notebook now...")
+    log_watchers['Notebook'] = subprocess.Popen(["/opt/start_notebook.sh", master_uri])
+
 master_size = len(master_uri.split(','))
 checker = 1
 
