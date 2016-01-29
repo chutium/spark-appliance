@@ -43,19 +43,19 @@ Check the changes: https://github.com/apache/spark/compare/branch-1.6...zalando:
 
 You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER```, ```START_WEBAPP``` to select the daemon to be started.
 
-Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
+Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.6.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
 
 ### Running with Docker locally
 
 ```
-sudo docker build -t pierone.example.org/bi/spark:1.5.3-SNAPSHOT .
+sudo docker build -t pierone.example.org/bi/spark:1.6.0-SNAPSHOT .
 
 sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_WEBAPP="true" \
                 -e CLUSTER_SIZE="1" \
                 --net=host \
-                pierone.example.org/bi/spark:1.5.3-SNAPSHOT
+                pierone.example.org/bi/spark:1.6.0-SNAPSHOT
 ```
 
 ### Deploying with Senza
@@ -89,7 +89,7 @@ sudo docker run -e START_MASTER="true" \
 
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -110,7 +110,7 @@ To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as wel
 
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -124,7 +124,7 @@ then wait until ```senza list spark``` shows that CloudFormation stack ```spark-
 
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -141,7 +141,7 @@ You can run a ```WebApp``` node separately with following senza command:
 
 ```
 senza create spark.yaml webapp \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -171,7 +171,7 @@ senza create exhibitor-appliance.yaml spark \
 After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -191,7 +191,7 @@ This senza create command with ```StartMaster=true``` and ```StartWorker=true```
 First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -207,7 +207,7 @@ senza create spark.yaml master \
 Wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -228,7 +228,7 @@ Currently the spark appliance support MySQL or PostgreSQL database as hive metas
 Once you created ```hive-site.xml```, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
+             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -243,7 +243,7 @@ senza create spark.yaml singlenode \
 
 ### Build distribution package and try it out
 
-Use branch: https://github.com/zalando/spark/tree/branch-1.5-zalando
+Use branch: https://github.com/zalando/spark/tree/branch-1.6-zalando
 
 Create distribution package
 
