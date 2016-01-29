@@ -17,7 +17,7 @@ Our [Senza](https://stups.io/senza/) appliances are running on the EC2 instances
 
 So we need to integrate the implementation of Amazon's EMRFS and Spark, for that we created [a branch for this](https://github.com/zalando/spark/tree/branch-1.6-zalando) in our github account.
 
-Check the changes: https://github.com/apache/spark/compare/branch-1.6...zalando:branch-1.6-zalando
+Check the changes: https://github.com/apache/spark/compare/branch-1.5...zalando:branch-1.5-zalando
 
 # Usage
 
