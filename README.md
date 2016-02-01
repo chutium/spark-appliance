@@ -1,6 +1,8 @@
 # spark-appliance
 Distributed Spark standalone cluster appliance for the [STUPS](https://stups.io) AWS environment.
 
+It provides a docker image which is integrated with Jupyter Notebook for Python, R and Spark (Scala, PySpark and Spark SQL).
+
 A lot of our data analysis workflows are based on EMR, but there are many conflicts between EMR and STUPS-Policies, so Spark-Appliance will be an alternative to EMR.
 
 Since we use AWS S3 as our data storage layer, HDFS is not needed, and if we use Spark, MapReduce framework and YARN resource management toolbox as part of traditional Hadoop Ecosystem are not needed either.
