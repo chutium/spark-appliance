@@ -64,8 +64,8 @@ sudo docker run -e START_MASTER="true" \
 | Senza Parameter | Docker ENV variable | Default value | Mandatory | Description |
 | ------------- | ----------- | ----------- | ----------- |----------- |
 | DockerImage   |  |  | Yes | Docker image path with version tag of Spark |
-| ApplicationID |  |  | Yes | The application ID according to Yourturn/Kio |
-| MintBucket    |  |  | Yes | Mint Bucket of Spark application |
+| ApplicationID |  | "spark" | No | The application ID according to Yourturn/Kio |
+| MintBucket    |  |  | No | Mint Bucket of Spark application |
 | ScalyrKey     |  | "" | No | The API key of Scalyr logging service used by Taupage |
 | InstanceType  |  | t2.medium | No | The instance type for the nodes of cluster |
 | ClusterSize   | CLUSTER_SIZE | 1 | No | The initial size (number of nodes) for the Spark cluster |
@@ -395,4 +395,4 @@ see https://github.com/zalando/spark-appliance/pull/10#issue-112365605
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * Add code sample for [Cassandra](https://github.com/zalando/stups-cassandra) support
 * Add code sample for postgres/[Spilo](https://github.com/zalando/spilo) support
-* Web interface to Spark shell
+* ~~Web interface to Spark shell~~ done by PR [#27](https://github.com/zalando/spark-appliance/pull/27)
