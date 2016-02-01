@@ -50,15 +50,22 @@ Note that if you do not need the [thrift server](https://spark.apache.org/docs/1
 ### Running with Docker locally
 
 ```
-sudo docker build -t registry.opensource.zalan.do/bi/spark:1.6.0-1 .
+docker build -t registry.opensource.zalan.do/bi/spark:1.6.0-1 .
 
-sudo docker run -e START_MASTER="true" \
-                -e START_WORKER="true" \
-                -e START_WEBAPP="true" \
-                -e START_NOTEBOOK="true" \
-                --net=host \
-                registry.opensource.zalan.do/bi/spark:1.6.0-1
+docker run -d --net=host
+           -e START_MASTER="true" \
+           -e START_WORKER="true" \
+           -e START_WEBAPP="true" \
+           -e START_NOTEBOOK="true" \
+           registry.opensource.zalan.do/bi/spark:1.6.0-1
 ```
+
+After that, you can check if the spark master is running:
+```
+curl http://localhost:8000/get_master_uri
+```
+
+And try the Jupyter Notebook with URL ```http://localhost:8888/```
 
 ### Deploying with Senza
 
