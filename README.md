@@ -48,14 +48,14 @@ Note that if you do not need the [thrift server](https://spark.apache.org/docs/1
 ### Running with Docker locally
 
 ```
-sudo docker build -t pierone.example.org/bi/spark:1.6.0-SNAPSHOT .
+sudo docker build -t registry.opensource.zalan.do/bi/spark:1.6.0-1 .
 
 sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_WEBAPP="true" \
                 -e CLUSTER_SIZE="1" \
                 --net=host \
-                pierone.example.org/bi/spark:1.6.0-SNAPSHOT
+                registry.opensource.zalan.do/bi/spark:1.6.0-1
 ```
 
 ### Deploying with Senza
@@ -72,13 +72,15 @@ sudo docker run -e START_MASTER="true" \
 | StartMaster   | START_MASTER | "" | No | Start spark master daemon |
 | StartWorker   | START_WORKER | "" | No | Start spark worker daemon |
 | StartThriftServer | START_THRIFTSERVER | "" | No | Start spark thrift server (HiveServer2) daemon |
-| StartWebApp | START_WEBAPP | "" | No | Start webapp for spark appliance |
+| StartWebApp   | START_WEBAPP | "" | No | Start webapp for spark appliance |
+| StartNotebook | START_NOTEBOOK | "" | No | Start Jupyter notebook as interactive web shell for Python, R, Spark (Scala, PySpark, Spark SQL) |
 | ZookeeperStackName | ZOOKEEPER_STACK_NAME | "" | No | Which ZooKeeper Stack should be used? |
 | MasterStackName | MASTER_STACK_NAME | "" | No | Spark Master stack name, e.g. spark-master |
-| DefaultCores | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
-| ExecutorMemory| EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
+| DefaultCores   | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
+| ExecutorMemory | EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
 | HiveSite     | HIVE_SITE_XML | "" | No | Which hive-site.xml file should be used? |
 | ExtJars      | EXT_JARS | "" | No | Which external jar files (comma-separated) should be used? such as for UDFs or external drivers |
+| PythonLibs   | PYTHON_LIBS | "" | No | Which external python libs (comma-separated) should be installed? e.g. ```"pandas,scikit-learn"```. Note that python library: ```NumPy```, ```SciPy``` and ```matplotlib``` are already installed |
 | AuthURL      | AUTH_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 service URL |
 | TokenInfoURL | TOKENINFO_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) TokenInfo service URL |
 | Oauth2Scope  | OAUTH2_SCOPE  | uid | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 scope to access the WebApp |
@@ -89,7 +91,7 @@ sudo docker run -e START_MASTER="true" \
 
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -110,7 +112,7 @@ To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as wel
 
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -124,7 +126,7 @@ then wait until ```senza list spark``` shows that CloudFormation stack ```spark-
 
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -141,7 +143,7 @@ You can run a ```WebApp``` node separately with following senza command:
 
 ```
 senza create spark.yaml webapp \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -160,7 +162,7 @@ Spark uses ZooKeeper for master process failure recovery in cluster mode. In STU
 Sample senza create script for creating exhibitor-appliance:
 ```
 senza create exhibitor-appliance.yaml spark \
-             DockerImage=pierone.example.org/teamid/exhibitor:0.1-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/acid/exhibitor:3.4-p3 \
              ExhibitorBucket=exhibitor \
              ApplicationID=exhibitor \
              MintBucket=stups-mint-000000000-eu-west-1 \
@@ -171,7 +173,7 @@ senza create exhibitor-appliance.yaml spark \
 After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -191,7 +193,7 @@ This senza create command with ```StartMaster=true``` and ```StartWorker=true```
 First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -207,7 +209,7 @@ senza create spark.yaml master \
 Wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -228,7 +230,7 @@ Currently the spark appliance support MySQL or PostgreSQL database as hive metas
 Once you created ```hive-site.xml```, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:1.6.0-SNAPSHOT \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
              ApplicationID=spark \
              MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
@@ -247,7 +249,7 @@ Use branch: https://github.com/zalando/spark/tree/branch-1.6-zalando
 
 Create distribution package
 
-```./make-distribution.sh --tgz --mvn ./build/mvn -Phadoop-2.6 -Phive -Phive-thriftserver -DskipTests```
+```./make-distribution.sh --tgz --mvn ./build/mvn -Phadoop-2.6 -Psparkr -Phive -Phive-thriftserver -DskipTests```
 
 Then you will get a Spark distribution with EMRFS support. Put this package in to an EC2 instance with appropriate IAM role and try it out with:
 
