@@ -48,6 +48,10 @@ if utils.get_os_env('EXT_JARS') != "":
         except:
             logging.error("ERROR: Failed to get external jar " + jar)
 
+if utils.get_os_env('PYTHON_LIBS') != "":
+    python_libs = utils.get_os_env('PYTHON_LIBS').split(',')
+    subprocess.Popen(["pip3", "install", "--upgrade"] + python_libs)
+
 if utils.get_os_env('EXECUTOR_MEMORY') != "":
     executor_memory = utils.get_os_env('EXECUTOR_MEMORY')
     with open(spark_dir + '/conf/spark-defaults.conf', "r+") as f:
