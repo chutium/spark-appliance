@@ -1,7 +1,7 @@
 # spark-appliance
 Distributed Spark standalone cluster appliance for the [STUPS](https://stups.io) AWS environment.
 
-It provides a docker image which is integrated with Jupyter Notebook for Python, R and Spark (Scala, PySpark and Spark SQL).
+It provides a docker image for Spark, which is integrated with Jupyter Notebook for Python, R and Spark (Scala, PySpark and Spark SQL).
 
 A lot of our data analysis workflows are based on EMR, but there are many conflicts between EMR and STUPS-Policies, so Spark-Appliance will be an alternative to EMR.
 
