@@ -74,7 +74,7 @@ And try the Jupyter Notebook with URL ```http://localhost:8888/```
 | ------------- | ----------- | ----------- | ----------- |----------- |
 | DockerImage   |  |  | Yes | Docker image path with version tag of Spark |
 | ApplicationID |  | "spark" | No | The application ID according to Yourturn/Kio |
-| MintBucket    |  |  | No | Mint Bucket of Spark application |
+| MintBucket    |  | "" | No | Mint Bucket of Spark application |
 | ScalyrKey     |  | "" | No | The API key of Scalyr logging service used by Taupage |
 | InstanceType  |  | t2.medium | No | The instance type for the nodes of cluster |
 | ClusterSize   | CLUSTER_SIZE | 1 | No | The initial size (number of nodes) for the Spark cluster |
