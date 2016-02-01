@@ -55,7 +55,7 @@ sudo docker build -t registry.opensource.zalan.do/bi/spark:1.6.0-1 .
 sudo docker run -e START_MASTER="true" \
                 -e START_WORKER="true" \
                 -e START_WEBAPP="true" \
-                -e CLUSTER_SIZE="1" \
+                -e START_NOTEBOOK="true" \
                 --net=host \
                 registry.opensource.zalan.do/bi/spark:1.6.0-1
 ```
