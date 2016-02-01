@@ -8,6 +8,9 @@ SenzaInfo:
     - ApplicationID:
         Description: "The application ID according to Yourturn/Kio"
         Default: "spark"
+    - MintBucket:
+        Description: "Mint Bucket of Spark application"
+        Default: ""
     - ScalyrKey:
         Description: "The API key of Scalyr logging service used by Taupage"
         Default: ""
