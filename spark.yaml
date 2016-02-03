@@ -105,6 +105,7 @@ SenzaComponents:
         source: "{{Arguments.DockerImage}}"
         root: true
         networking: host
+        mint_bucket: '{{Arguments.MintBucket}}'
         scalyr_account_key: "{{Arguments.ScalyrKey}}"
         #configure logrotate for application.log
         application_logrotate_size: 10M
