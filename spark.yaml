@@ -39,6 +39,9 @@ SenzaInfo:
     - DefaultCores:
         Description: "Default number of cores to give to applications in Spark's standalone mode"
         Default: ""
+    - DriverMemory:
+        Description: "Amount of memory to use for the driver process (e.g. 2g, 8g)"
+        Default: "2g"
     - ExecutorMemory:
         Description: "Amount of memory to use per executor process (e.g. 2g, 8g)"
         Default: "2g"
