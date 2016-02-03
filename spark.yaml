@@ -117,6 +117,7 @@ SenzaComponents:
           START_WEBAPP: "{{Arguments.StartWebApp}}"
           MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
           DEFAULT_CORES: "{{Arguments.DefaultCores}}"
+          DRIVER_MEMORY: "{{Arguments.DriverMemory}}"
           EXECUTOR_MEMORY: "{{Arguments.ExecutorMemory}}"
           EXT_JARS: "{{Arguments.ExtJars}}"
           AUTH_URL: "{{Arguments.AuthURL}}"
