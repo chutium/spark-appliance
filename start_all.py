@@ -52,6 +52,18 @@ if utils.get_os_env('PYTHON_LIBS') != "":
     python_libs = utils.get_os_env('PYTHON_LIBS').split(',')
     subprocess.Popen(["pip3", "install", "--upgrade"] + python_libs)
 
+if utils.get_os_env('DRIVER_MEMORY') != "":
+    driver_memory = utils.get_os_env('DRIVER_MEMORY')
+    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as f:
+        lines = f.read().splitlines()
+        f.seek(0)
+        f.truncate()
+        f.write('spark.driver.memory    ' + driver_memory + '\n')
+        for line in lines:
+            if not line.startswith("spark.driver.memory"):
+                f.write(line + '\n')
+        f.close()
+
 if utils.get_os_env('EXECUTOR_MEMORY') != "":
     executor_memory = utils.get_os_env('EXECUTOR_MEMORY')
     with open(spark_dir + '/conf/spark-defaults.conf', "r+") as f:
