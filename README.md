@@ -85,36 +85,28 @@ And try the Jupyter Notebook with URL ```http://localhost:8888/```
 | StartNotebook | START_NOTEBOOK | "" | No | Start Jupyter notebook as interactive web shell for Python, R, Spark (Scala, PySpark, Spark SQL) |
 | ZookeeperStackName | ZOOKEEPER_STACK_NAME | "" | No | Which ZooKeeper Stack should be used? |
 | MasterStackName | MASTER_STACK_NAME | "" | No | Spark Master stack name, e.g. spark-master |
-| DefaultCores   | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
-| ExecutorMemory | EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
+| DefaultCores    | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
+| DriverMemory    | DRIVER_MEMORY | 2g | No | Amount of memory to use for the driver process (e.g. 2g, 8g) |
+| ExecutorMemory  | EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
 | HiveSite     | HIVE_SITE_XML | "" | No | Which hive-site.xml file should be used? |
 | ExtJars      | EXT_JARS | "" | No | Which external jar files (comma-separated) should be used? such as for UDFs or external drivers |
 | PythonLibs   | PYTHON_LIBS | "" | No | Which external python libs (comma-separated) should be installed? e.g. ```"pandas,scikit-learn"```. Note that python library: ```NumPy```, ```SciPy``` and ```matplotlib``` are already installed |
 | AuthURL      | AUTH_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 service URL |
 | TokenInfoURL | TOKENINFO_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) TokenInfo service URL |
 | Oauth2Scope  | OAUTH2_SCOPE  | uid | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 scope to access the WebApp |
-| HostedZone   |  | "" | No | Hosted Zone in which STUPS deploys |
-| SSLCertificateId |  | "" | No | ARN of your SSL Certificate which will be used for ELB, to find out your SSL certificate's IDs, execute the following command: ```aws iam list-server-certificates``` |
 
 #### Deploying on single node
 
 ```
 senza create spark.yaml singlenode \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
              StartThriftServer=true \
-             StartWebApp=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             StartWebApp=true
 ```
 
-```SSLCertificateId``` needed by WebApp to enable HTTPS, and ```HostedZone``` is used for creating Route53 DNS record.
-
-To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as well.
+To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL```.
 
 
 #### Cluster mode
@@ -122,13 +114,8 @@ To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as wel
 ```
 senza create spark.yaml master \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
-             StartWebApp=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             StartWebApp=true
 ```
 
 then wait until ```senza list spark``` shows that CloudFormation stack ```spark-master``` with status ```CREATE_COMPLETE```.
@@ -136,14 +123,9 @@ then wait until ```senza list spark``` shows that CloudFormation stack ```spark-
 ```
 senza create spark.yaml worker \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              MasterStackName="spark-master" \
              StartWorker=true \
-             ClusterSize=3 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             ClusterSize=3
 ```
 
 With above commands, one spark master node will running with ```WebApp```, and 3 spark worker node will be registered to this spark master node.
@@ -153,13 +135,8 @@ You can run a ```WebApp``` node separately with following senza command:
 ```
 senza create spark.yaml webapp \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              MasterStackName="spark-master" \
-             StartWebApp=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             StartWebApp=true
 ```
 
 That means, just change ```StartWorker=true``` to ```StartWebApp=true```, and remove the ```ClusterSize``` setting, then you should be able to access the WebApp with an URL like: ```https://spark-webapp.teamid.example.org```.
@@ -170,28 +147,23 @@ Spark uses ZooKeeper for master process failure recovery in cluster mode. In STU
 
 Sample senza create script for creating exhibitor-appliance:
 ```
-senza create exhibitor-appliance.yaml spark \
+senza create https://raw.githubusercontent.com/zalando/exhibitor-appliance/master/exhibitor-appliance.yaml spark \
              DockerImage=registry.opensource.zalan.do/acid/exhibitor:3.4-p3 \
              ExhibitorBucket=exhibitor \
-             ApplicationID=exhibitor \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrAccountKey=XXXYYYZZZ \
              HostedZone=teamid.example.org.
 ```
+
+```HostedZone``` is used for creating Route53 DNS record, change to yours, and you need to create a bucket in s3 for exhibitor, in this example, we use the s3 bucket: ```s3://exhibitor```.
 
 After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
              StartWebApp=true \
              ClusterSize=3 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark"
 ```
 
@@ -203,14 +175,9 @@ First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWebApp=true \
              ClusterSize=3 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark"
 ```
 (only different is, here you do not set ```StartWorker=true```. Moreover, the thrift server must be started on one of master instances, so if you want to use thrift server, you should set ```StartThriftServer=true``` here. And to enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as well.)
@@ -219,13 +186,8 @@ Wait until CloudFormation stack ```spark-master``` completely deployed, then cre
 ```
 senza create spark.yaml worker \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              StartWorker=true \
              ClusterSize=5 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark" \
              MasterStackName="spark-master"
 ```
@@ -240,15 +202,10 @@ Once you created ```hive-site.xml```, you can pack it into your own docker image
 ```
 senza create spark.yaml singlenode \
              DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
              StartWebApp=true \
              StartThriftServer=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
              HiveSite="s3://hive-configs/hive-site.xml"
 ```
 
