@@ -89,8 +89,6 @@ SenzaComponents:
         ScaleDownThreshold: 40
       HealthCheckType: ELB
       ElasticLoadBalancer: AppLoadBalancer
-      LoadBalancerNames:
-        - Ref: AppLoadBalancer
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
@@ -133,6 +131,21 @@ SenzaComponents:
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
           OAUTH2_SCOPE: "{{Arguments.Oauth2Scope}}"
+  - AppLoadBalancer:
+      Type: Senza::WeightedDnsElasticLoadBalancer
+      HTTPPort: 8000
+      HealthCheck:
+        Target: TCP:7077
+        Timeout: 5
+        Interval: 30
+        UnhealthyThreshold: 2
+        HealthyThreshold: 2
+      SecurityGroups:
+        - "Fn::GetAtt" : [ "SparkLBSecGroup" , "GroupId" ]
+      ConnectionSettings:
+        IdleTimeout: 3600
+      Scheme: internet-facing
+
 Resources:
   SparkRole:
     Type: AWS::IAM::Role
@@ -198,39 +211,3 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-  AppLoadBalancer:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
-    Properties:
-      LoadBalancerName: "{{Arguments.ApplicationID}}-{{Arguments.version}}"
-      CrossZone: true
-      HealthCheck:
-        Target: TCP:7077
-        Timeout: 5
-        Interval: 30
-        UnhealthyThreshold: 2
-        HealthyThreshold: 2
-      Listeners:
-        - InstancePort: 8000
-          LoadBalancerPort: 443
-          Protocol: HTTPS
-          InstanceProtocol: HTTP
-          SSLCertificateId: "{{Arguments.SSLCertificateId}}"
-      SecurityGroups:
-        - "Fn::GetAtt" : [ "SparkLBSecGroup" , "GroupId" ]
-      Scheme: internet-facing
-      Subnets:
-        Fn::FindInMap:
-          - LoadBalancerSubnets
-          - Ref: AWS::Region
-          - Subnets
-  Route53VersionedDomainRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneName: "{{Arguments.HostedZone}}"
-      Name: "{{Arguments.ApplicationID}}-{{Arguments.version}}.{{Arguments.HostedZone}}"
-      Type: CNAME
-      TTL: 20
-      ResourceRecords:
-        - Fn::GetAtt:
-           - AppLoadBalancer
-           - DNSName
