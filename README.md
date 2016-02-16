@@ -52,7 +52,7 @@ Note that if you do not need the [thrift server](https://spark.apache.org/docs/1
 ```
 docker build -t registry.opensource.zalan.do/bi/spark:1.6.0-1 .
 
-docker run -d --net=host
+docker run -d --net=host \
            -e START_MASTER="true" \
            -e START_WORKER="true" \
            -e START_WEBAPP="true" \
