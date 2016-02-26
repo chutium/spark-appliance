@@ -66,6 +66,9 @@ SenzaInfo:
     - SSLCertificateId:
         Description: "ARN of your SSL Certificate which will be used for ELB"
         Default: ""
+    - ExternalConfig:
+        Description: "External config file on S3. Appended to spark-defaults.conf before startup."
+        Default: ""
 
 SenzaComponents:
   - Configuration:
@@ -123,6 +126,7 @@ SenzaComponents:
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
           OAUTH2_SCOPE: "{{Arguments.Oauth2Scope}}"
+          EXT_CONF: "{{Arguments.ExternalConfig}}"
 Resources:
   SparkRole:
     Type: AWS::IAM::Role
