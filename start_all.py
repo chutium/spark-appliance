@@ -48,6 +48,40 @@ if utils.get_os_env('EXT_JARS') != "":
         except:
             logging.error("ERROR: Failed to get external jar " + jar)
 
+if utils.get_os_env('EXT_CONF') != "":
+    ext_conf = utils.get_os_env('EXT_CONF')
+    s3 = boto3.resource('s3')
+    path = ext_conf[5:]
+    bucket = path[:path.find('/')]
+    file_key = path[path.find('/')+1:]
+    file_name = path[path.rfind('/')+1:]
+    try:
+        s3.meta.client.download_file(bucket, file_key, '/tmp/' + file_name)
+        logging.info("Got external config from " + ext_conf)
+    except Exception as e:
+        logging.error("ERROR: Failed to get external config " + ext_conf)
+        logging.error("exception: " + str(e))
+
+    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as default, open('/tmp/' + file_name , "r") as conf:
+        lines = default.read().splitlines()
+        default.seek(0)
+        default.truncate()
+        for c in conf.read().splitlines():
+            if c.startswith("#"):
+                lines.append(c)
+                continue
+            attribute = c.split()
+            if(len(attribute) < 2):
+                continue
+            if(len(attribute) >= 2):
+                for line in lines:
+                    if line.split() == attribute[0]:
+                        lines.remove(line)
+                lines.append(c)
+        for line in lines:
+            default.write(line+ '\n')
+        default.close()
+
 if utils.get_os_env('PYTHON_LIBS') != "":
     python_libs = utils.get_os_env('PYTHON_LIBS').split(',')
     subprocess.Popen(["pip3", "install", "--upgrade"] + python_libs)
