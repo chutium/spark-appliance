@@ -50,14 +50,14 @@ Note that if you do not need the [thrift server](https://spark.apache.org/docs/1
 ### Running with Docker locally
 
 ```
-docker build -t registry.opensource.zalan.do/bi/spark:1.6.0-1 .
+docker build -t registry.opensource.zalan.do/bi/spark:1.6.1-2 .
 
 docker run -d --net=host \
            -e START_MASTER="true" \
            -e START_WORKER="true" \
            -e START_WEBAPP="true" \
            -e START_NOTEBOOK="true" \
-           registry.opensource.zalan.do/bi/spark:1.6.0-1
+           registry.opensource.zalan.do/bi/spark:1.6.1-2
 ```
 
 After that, you can check if the spark master is running:
@@ -99,7 +99,7 @@ And try the Jupyter Notebook with URL ```http://localhost:8888/```
 
 ```
 senza create spark.yaml singlenode \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWorker=true \
              StartThriftServer=true \
@@ -113,7 +113,7 @@ To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL```.
 
 ```
 senza create spark.yaml master \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWebApp=true
 ```
@@ -122,7 +122,7 @@ then wait until ```senza list spark``` shows that CloudFormation stack ```spark-
 
 ```
 senza create spark.yaml worker \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              MasterStackName="spark-master" \
              StartWorker=true \
              ClusterSize=3
@@ -134,7 +134,7 @@ You can run a ```WebApp``` node separately with following senza command:
 
 ```
 senza create spark.yaml webapp \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              MasterStackName="spark-master" \
              StartWebApp=true
 ```
@@ -158,7 +158,7 @@ senza create https://raw.githubusercontent.com/zalando/exhibitor-appliance/maste
 After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
@@ -174,7 +174,7 @@ This senza create command with ```StartMaster=true``` and ```StartWorker=true```
 First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWebApp=true \
              ClusterSize=3 \
@@ -185,7 +185,7 @@ senza create spark.yaml master \
 Wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartWorker=true \
              ClusterSize=5 \
              ZookeeperStackName="exhibitor-spark" \
@@ -201,7 +201,7 @@ Currently the spark appliance support MySQL or PostgreSQL database as hive metas
 Once you created ```hive-site.xml```, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
 ```
 senza create spark.yaml singlenode \
-             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.0-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWorker=true \
              StartWebApp=true \
