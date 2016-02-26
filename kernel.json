@@ -1,0 +1,19 @@
+{
+    "display_name": "Spark 1.6.0 (Scala)",
+    "language_info": { "name": "scala" },
+    "argv": [
+        "/opt/toree-kernel/bin/toree-kernel",
+        "--profile",
+        "{connection_file}"
+    ],
+    "codemirror_mode": "scala",
+    "env": {
+        "SPARK_OPTS": "--master=${SPARK_MASTER} --driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info",
+        "MAX_INTERPRETER_THREADS": "16",
+        "CAPTURE_STANDARD_OUT": "true",
+        "CAPTURE_STANDARD_ERR": "true",
+        "SEND_EMPTY_OUTPUT": "false",
+        "SPARK_HOME": "${SPARK_HOME}",
+        "PYTHONPATH": "${PYTHONPATH}"
+     }
+}

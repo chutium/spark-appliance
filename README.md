@@ -1,6 +1,8 @@
 # spark-appliance
 Distributed Spark standalone cluster appliance for the [STUPS](https://stups.io) AWS environment.
 
+It provides a docker image for Spark, which is integrated with Jupyter Notebook for Python, R and Spark (Scala, PySpark and Spark SQL).
+
 A lot of our data analysis workflows are based on EMR, but there are many conflicts between EMR and STUPS-Policies, so Spark-Appliance will be an alternative to EMR.
 
 Since we use AWS S3 as our data storage layer, HDFS is not needed, and if we use Spark, MapReduce framework and YARN resource management toolbox as part of traditional Hadoop Ecosystem are not needed either.
@@ -43,20 +45,27 @@ Check the changes: https://github.com/apache/spark/compare/branch-1.5...zalando:
 
 You can use the docker environment variables ```START_MASTER```, ```START_WORKER```, ```START_THRIFTSERVER```, ```START_WEBAPP``` to select the daemon to be started.
 
-Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.5.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
+Note that if you do not need the [thrift server](https://spark.apache.org/docs/1.6.0/sql-programming-guide.html#distributed-sql-engine), we suggest you to set the environment variable ```START_THRIFTSERVER=""```. Because the thrift server is not an external daemon process, it will be running as a Spark application and create some executors in the cluster and therefore will take up resources of the Spark cluster as well as other Spark applications submitted by ```spark-submit``` script. This resource consumption may cause your other Spark applications not getting enough resources to start when you use a small EC2 instance type like t2-series.
 
 ### Running with Docker locally
 
 ```
-sudo docker build -t pierone.example.org/bi/spark:1.5.3-SNAPSHOT .
+docker build -t registry.opensource.zalan.do/bi/spark:1.6.1-2 .
 
-sudo docker run -e START_MASTER="true" \
-                -e START_WORKER="true" \
-                -e START_WEBAPP="true" \
-                -e CLUSTER_SIZE="1" \
-                --net=host \
-                pierone.example.org/bi/spark:1.5.3-SNAPSHOT
+docker run -d --net=host \
+           -e START_MASTER="true" \
+           -e START_WORKER="true" \
+           -e START_WEBAPP="true" \
+           -e START_NOTEBOOK="true" \
+           registry.opensource.zalan.do/bi/spark:1.6.1-2
 ```
+
+After that, you can check if the spark master is running:
+```
+curl http://localhost:8000/get_master_uri
+```
+
+And try the Jupyter Notebook with URL ```http://localhost:8888/```
 
 ### Deploying with Senza
 
@@ -64,75 +73,59 @@ sudo docker run -e START_MASTER="true" \
 | Senza Parameter | Docker ENV variable | Default value | Mandatory | Description |
 | ------------- | ----------- | ----------- | ----------- |----------- |
 | DockerImage   |  |  | Yes | Docker image path with version tag of Spark |
-| ApplicationID |  |  | Yes | The application ID according to Yourturn/Kio |
-| MintBucket    |  |  | Yes | Mint Bucket of Spark application |
+| ApplicationID |  | "spark" | No | The application ID according to Yourturn/Kio |
+| MintBucket    |  | "" | No | Mint Bucket of Spark application |
 | ScalyrKey     |  | "" | No | The API key of Scalyr logging service used by Taupage |
 | InstanceType  |  | t2.medium | No | The instance type for the nodes of cluster |
 | ClusterSize   | CLUSTER_SIZE | 1 | No | The initial size (number of nodes) for the Spark cluster |
 | StartMaster   | START_MASTER | "" | No | Start spark master daemon |
 | StartWorker   | START_WORKER | "" | No | Start spark worker daemon |
 | StartThriftServer | START_THRIFTSERVER | "" | No | Start spark thrift server (HiveServer2) daemon |
-| StartWebApp | START_WEBAPP | "" | No | Start webapp for spark appliance |
+| StartWebApp   | START_WEBAPP | "" | No | Start webapp for spark appliance |
+| StartNotebook | START_NOTEBOOK | "" | No | Start Jupyter notebook as interactive web shell for Python, R, Spark (Scala, PySpark, Spark SQL) |
 | ZookeeperStackName | ZOOKEEPER_STACK_NAME | "" | No | Which ZooKeeper Stack should be used? |
 | MasterStackName | MASTER_STACK_NAME | "" | No | Spark Master stack name, e.g. spark-master |
-| DefaultCores | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
-| ExecutorMemory| EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
+| DefaultCores    | DEFAULT_CORES | "" | No | Default number of cores to give to applications in Spark's standalone mode |
+| DriverMemory    | DRIVER_MEMORY | 2g | No | Amount of memory to use for the driver process (e.g. 2g, 8g) |
+| ExecutorMemory  | EXECUTOR_MEMORY | 2g | No | Amount of memory to use per executor process (e.g. 2g, 8g) |
 | HiveSite     | HIVE_SITE_XML | "" | No | Which hive-site.xml file should be used? |
 | ExtJars      | EXT_JARS | "" | No | Which external jar files (comma-separated) should be used? such as for UDFs or external drivers |
+| PythonLibs   | PYTHON_LIBS | "" | No | Which external python libs (comma-separated) should be installed? e.g. ```"pandas,scikit-learn"```. Note that python library: ```NumPy```, ```SciPy``` and ```matplotlib``` are already installed |
 | AuthURL      | AUTH_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 service URL |
 | TokenInfoURL | TOKENINFO_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) TokenInfo service URL |
 | Oauth2Scope  | OAUTH2_SCOPE  | uid | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 scope to access the WebApp |
-| HostedZone   |  | "" | No | Hosted Zone in which STUPS deploys |
-| SSLCertificateId |  | "" | No | ARN of your SSL Certificate which will be used for ELB, to find out your SSL certificate's IDs, execute the following command: ```aws iam list-server-certificates``` |
 
 #### Deploying on single node
 
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWorker=true \
              StartThriftServer=true \
-             StartWebApp=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             StartWebApp=true
 ```
 
-```SSLCertificateId``` needed by WebApp to enable HTTPS, and ```HostedZone``` is used for creating Route53 DNS record.
-
-To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as well.
+To enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL```.
 
 
 #### Cluster mode
 
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
-             StartWebApp=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             StartWebApp=true
 ```
 
 then wait until ```senza list spark``` shows that CloudFormation stack ```spark-master``` with status ```CREATE_COMPLETE```.
 
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              MasterStackName="spark-master" \
              StartWorker=true \
-             ClusterSize=3 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             ClusterSize=3
 ```
 
 With above commands, one spark master node will running with ```WebApp```, and 3 spark worker node will be registered to this spark master node.
@@ -141,14 +134,9 @@ You can run a ```WebApp``` node separately with following senza command:
 
 ```
 senza create spark.yaml webapp \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              MasterStackName="spark-master" \
-             StartWebApp=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
+             StartWebApp=true
 ```
 
 That means, just change ```StartWorker=true``` to ```StartWebApp=true```, and remove the ```ClusterSize``` setting, then you should be able to access the WebApp with an URL like: ```https://spark-webapp.teamid.example.org```.
@@ -159,28 +147,23 @@ Spark uses ZooKeeper for master process failure recovery in cluster mode. In STU
 
 Sample senza create script for creating exhibitor-appliance:
 ```
-senza create exhibitor-appliance.yaml spark \
-             DockerImage=pierone.example.org/teamid/exhibitor:0.1-SNAPSHOT \
+senza create https://raw.githubusercontent.com/zalando/exhibitor-appliance/master/exhibitor-appliance.yaml spark \
+             DockerImage=registry.opensource.zalan.do/acid/exhibitor:3.4-p3 \
              ExhibitorBucket=exhibitor \
-             ApplicationID=exhibitor \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrAccountKey=XXXYYYZZZ \
              HostedZone=teamid.example.org.
 ```
+
+```HostedZone``` is used for creating Route53 DNS record, change to yours, and you need to create a bucket in s3 for exhibitor, in this example, we use the s3 bucket: ```s3://exhibitor```.
 
 After the deployment finished, you will have a CloudFormation stack ```exhibitor-spark```, use this as ```ZookeeperStackName```, you can create a HA Spark cluster:
 ```
 senza create spark.yaml ha \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              ScalyrKey=XXXYYYZZZ \
              StartMaster=true \
              StartWorker=true \
              StartWebApp=true \
              ClusterSize=3 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark"
 ```
 
@@ -191,15 +174,10 @@ This senza create command with ```StartMaster=true``` and ```StartWorker=true```
 First, create spark master + webapp stack:
 ```
 senza create spark.yaml master \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWebApp=true \
              ClusterSize=3 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark"
 ```
 (only different is, here you do not set ```StartWorker=true```. Moreover, the thrift server must be started on one of master instances, so if you want to use thrift server, you should set ```StartThriftServer=true``` here. And to enable OAuth2 you need to specify ```AuthURL``` and ```TokenInfoURL``` as well.)
@@ -207,14 +185,9 @@ senza create spark.yaml master \
 Wait until CloudFormation stack ```spark-master``` completely deployed, then create workers:
 ```
 senza create spark.yaml worker \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartWorker=true \
              ClusterSize=5 \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate" \
              ZookeeperStackName="exhibitor-spark" \
              MasterStackName="spark-master"
 ```
@@ -228,26 +201,21 @@ Currently the spark appliance support MySQL or PostgreSQL database as hive metas
 Once you created ```hive-site.xml```, you can pack it into your own docker image, and push this docker image into PierOne repo. Or you upload this hive-site.xml to S3, and use ```HiveSite``` parameter by senza create, such as:
 ```
 senza create spark.yaml singlenode \
-             DockerImage=pierone.example.org/bi/spark:1.5.3-SNAPSHOT \
-             ApplicationID=spark \
-             MintBucket=stups-mint-000000000-eu-west-1 \
-             ScalyrKey=XXXYYYZZZ \
+             DockerImage=registry.opensource.zalan.do/bi/spark:1.6.1-2 \
              StartMaster=true \
              StartWorker=true \
              StartWebApp=true \
              StartThriftServer=true \
-             HostedZone="teamid.example.org." \
-             SSLCertificateId="ARN_of_your_SSL_Certificate"
              HiveSite="s3://hive-configs/hive-site.xml"
 ```
 
 ### Build distribution package and try it out
 
-Use branch: https://github.com/zalando/spark/tree/branch-1.5-zalando
+Use branch: https://github.com/zalando/spark/tree/branch-1.6-zalando
 
 Create distribution package
 
-```./make-distribution.sh --tgz --mvn ./build/mvn -Phadoop-2.6 -Phive -Phive-thriftserver -DskipTests```
+```./make-distribution.sh --tgz --mvn ./build/mvn -Phadoop-2.6 -Psparkr -Phive -Phive-thriftserver -DskipTests```
 
 Then you will get a Spark distribution with EMRFS support. Put this package in to an EC2 instance with appropriate IAM role and try it out with:
 
@@ -395,4 +363,4 @@ see https://github.com/zalando/spark-appliance/pull/10#issue-112365605
 * Add code sample for Kafka/[Buku](https://github.com/zalando/saiki-buku) support
 * Add code sample for [Cassandra](https://github.com/zalando/stups-cassandra) support
 * Add code sample for postgres/[Spilo](https://github.com/zalando/spilo) support
-* Web interface to Spark shell
+* ~~Web interface to Spark shell~~ done by PR [#27](https://github.com/zalando/spark-appliance/pull/27)

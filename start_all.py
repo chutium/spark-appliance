@@ -82,6 +82,9 @@ if utils.get_os_env('EXT_CONF') != "":
             default.write(line+ '\n')
         default.close()
 
+if utils.get_os_env('PYTHON_LIBS') != "":
+    python_libs = utils.get_os_env('PYTHON_LIBS').split(',')
+    subprocess.Popen(["pip3", "install", "--upgrade"] + python_libs)
 
 if utils.get_os_env('DRIVER_MEMORY') != "":
     driver_memory = utils.get_os_env('DRIVER_MEMORY')
@@ -175,6 +178,12 @@ if utils.get_os_env('START_THRIFTSERVER').lower() == 'true':
 if utils.get_os_env('START_WEBAPP').lower() == 'true':
     logging.info("Daemon started, starting webapp now...")
     log_watchers['WebApp'] = subprocess.Popen(["uwsgi", "--http", ":8000", "-w", "webapp"])
+
+sleep(30)
+
+if utils.get_os_env('START_NOTEBOOK').lower() == 'true':
+    logging.info("Daemon started, starting notebook now...")
+    log_watchers['Notebook'] = subprocess.Popen(["/opt/start_notebook.sh", master_uri])
 
 master_size = len(master_uri.split(','))
 checker = 1

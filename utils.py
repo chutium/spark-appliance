@@ -17,7 +17,7 @@ def get_os_env(name):
 def set_ec2_identities():
     url = 'http://169.254.169.254/latest/dynamic/instance-identity/document'
     try:
-        response = requests.get(url)
+        response = requests.get(url, timeout=(3, 27))
         json = response.json()
         global instanceId
         global private_ip

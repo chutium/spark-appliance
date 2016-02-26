@@ -7,26 +7,19 @@ SenzaInfo:
         Description: "Docker image path with version tag of Spark"
     - ApplicationID:
         Description: "The application ID according to Yourturn/Kio"
+        Default: "spark"
     - MintBucket:
         Description: "Mint Bucket of Spark application"
+        Default: ""
     - ScalyrKey:
         Description: "The API key of Scalyr logging service used by Taupage"
         Default: ""
-    - ClusterSize:
-        Description: "The initial size (number of nodes) for the Spark cluster"
-        Default: "1"
     - InstanceType:
         Description: "The instance type for the nodes of cluster"
         Default: "t2.medium"
-    - ZookeeperStackName:
-        Description: "Which ZooKeeper Stack should be used?"
-        Default: ""
-    - HiveSite:
-        Description: "Which hive-site.xml file should be used?"
-        Default: ""
-    - ExtJars:
-        Description: "Which external jar files (comma-separated) should be used?"
-        Default: ""
+    - ClusterSize:
+        Description: "The initial size (number of nodes) for the Spark cluster"
+        Default: "1"
     - StartMaster:
         Description: "Start spark master daemon"
         Default: ""
@@ -35,6 +28,18 @@ SenzaInfo:
         Default: ""
     - StartThriftServer:
         Description: "Start spark thrift server (HiveServer2) daemon"
+        Default: ""
+    - StartWebApp:
+        Description: "Start webapp for spark appliance"
+        Default: ""
+    - StartNotebook:
+        Description: "Start web-based notebook for spark"
+        Default: ""
+    - ZookeeperStackName:
+        Description: "Which ZooKeeper Stack should be used?"
+        Default: ""
+    - MasterStackName:
+        Description: "Spark Master stack name, e.g. spark-master"
         Default: ""
     - DefaultCores:
         Description: "Default number of cores to give to applications in Spark's standalone mode"
@@ -45,11 +50,14 @@ SenzaInfo:
     - ExecutorMemory:
         Description: "Amount of memory to use per executor process (e.g. 2g, 8g)"
         Default: "2g"
-    - StartWebApp:
-        Description: "Start webapp for spark appliance"
+    - HiveSite:
+        Description: "Which hive-site.xml file should be used?"
         Default: ""
-    - MasterStackName:
-        Description: "Spark Master stack name, e.g. spark-master"
+    - ExtJars:
+        Description: "Which external jar files (comma-separated) should be used?"
+        Default: ""
+    - PythonLibs:
+        Description: "Which external python libs (comma-separated) should be installed?"
         Default: ""
     - AuthURL:
         Description: "OAuth2 service URL"
@@ -84,8 +92,6 @@ SenzaComponents:
         ScaleDownThreshold: 40
       HealthCheckType: ELB
       ElasticLoadBalancer: AppLoadBalancer
-      LoadBalancerNames:
-        - Ref: AppLoadBalancer
       BlockDeviceMappings:
         - DeviceName: /dev/sda1
           Ebs:
@@ -118,15 +124,32 @@ SenzaComponents:
           START_WORKER: "{{Arguments.StartWorker}}"
           START_THRIFTSERVER: "{{Arguments.StartThriftServer}}"
           START_WEBAPP: "{{Arguments.StartWebApp}}"
+          START_NOTEBOOK: "{{Arguments.StartNotebook}}"
           MASTER_STACK_NAME: "{{Arguments.MasterStackName}}"
           DEFAULT_CORES: "{{Arguments.DefaultCores}}"
           DRIVER_MEMORY: "{{Arguments.DriverMemory}}"
           EXECUTOR_MEMORY: "{{Arguments.ExecutorMemory}}"
           EXT_JARS: "{{Arguments.ExtJars}}"
+          PYTHON_LIBS: "{{Arguments.PythonLibs}}"
           AUTH_URL: "{{Arguments.AuthURL}}"
           TOKENINFO_URL: "{{Arguments.TokenInfoURL}}"
           OAUTH2_SCOPE: "{{Arguments.Oauth2Scope}}"
           EXT_CONF: "{{Arguments.ExternalConfig}}"
+  - AppLoadBalancer:
+      Type: Senza::WeightedDnsElasticLoadBalancer
+      HTTPPort: 8000
+      HealthCheck:
+        Target: TCP:7077
+        Timeout: 5
+        Interval: 30
+        UnhealthyThreshold: 2
+        HealthyThreshold: 2
+      SecurityGroups:
+        - "Fn::GetAtt" : [ "SparkLBSecGroup" , "GroupId" ]
+      ConnectionSettings:
+        IdleTimeout: 3600
+      Scheme: internet-facing
+
 Resources:
   SparkRole:
     Type: AWS::IAM::Role
@@ -140,19 +163,13 @@ Resources:
           Action: sts:AssumeRole
       Path: /
       Policies:
-      - PolicyName: AmazonS3MintBucketAccess
+      - PolicyName: AmazonS3FullAccess
         PolicyDocument:
           Version: "2012-10-17"
           Statement:
           - Effect: Allow
             Action: "s3:*"
             Resource: "*"
-          - Effect: Deny
-            Action: "s3:*"
-            Resource: ["arn:aws:s3:::{{Arguments.MintBucket}}"]
-          - Effect: Allow
-            Action: "s3:GetObject"
-            Resource: ["arn:aws:s3:::{{Arguments.MintBucket}}/{{Arguments.ApplicationID}}/*"]
       - PolicyName: AmazonEC2MetadataReadAccess
         PolicyDocument:
           Version: "2012-10-17"
@@ -198,39 +215,3 @@ Resources:
           FromPort: 443
           ToPort: 443
           CidrIp: 0.0.0.0/0
-  AppLoadBalancer:
-    Type: AWS::ElasticLoadBalancing::LoadBalancer
-    Properties:
-      LoadBalancerName: "{{Arguments.ApplicationID}}-{{Arguments.version}}"
-      CrossZone: true
-      HealthCheck:
-        Target: TCP:7077
-        Timeout: 5
-        Interval: 30
-        UnhealthyThreshold: 2
-        HealthyThreshold: 2
-      Listeners:
-        - InstancePort: 8000
-          LoadBalancerPort: 443
-          Protocol: HTTPS
-          InstanceProtocol: HTTP
-          SSLCertificateId: "{{Arguments.SSLCertificateId}}"
-      SecurityGroups:
-        - "Fn::GetAtt" : [ "SparkLBSecGroup" , "GroupId" ]
-      Scheme: internet-facing
-      Subnets:
-        Fn::FindInMap:
-          - LoadBalancerSubnets
-          - Ref: AWS::Region
-          - Subnets
-  Route53VersionedDomainRecord:
-    Type: AWS::Route53::RecordSet
-    Properties:
-      HostedZoneName: "{{Arguments.HostedZone}}"
-      Name: "{{Arguments.ApplicationID}}-{{Arguments.version}}.{{Arguments.HostedZone}}"
-      Type: CNAME
-      TTL: 20
-      ResourceRecords:
-        - Fn::GetAtt:
-           - AppLoadBalancer
-           - DNSName
