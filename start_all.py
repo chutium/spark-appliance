@@ -51,29 +51,31 @@ if utils.get_os_env('EXT_JARS') != "":
 if utils.get_os_env('EXT_CONF') != "":
     ext_conf = utils.get_os_env('EXT_CONF')
     s3 = boto3.resource('s3')
-    path = jar[5:]
+    path = ext_conf[5:]
     bucket = path[:path.find('/')]
     file_key = path[path.find('/')+1:]
     file_name = path[path.rfind('/')+1:]
     try:
-        s3.meta.client.download_file(bucket, file_key, spark_dir + '/tmp/' + file_name)
+        s3.meta.client.download_file(bucket, file_key, '/tmp/' + file_name)
         logging.info("Got external config from " + ext_conf)
-    except:
+    except Exception as e:
         logging.error("ERROR: Failed to get external config " + ext_conf)
-    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as default, open(spark_dir + '/tmp/' + file_name , "r") as conf:
+        logging.error("exception: " + str(e))
+
+    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as default, open('/tmp/' + file_name , "r") as conf:
         lines = default.read().splitlines()
         default.seek(0)
         default.truncate()
-        for c in conf.read().splitlines()
+        for c in conf.read().splitlines():
             if c.startswith("#"):
                 lines.append(c)
                 continue
             attribute = c.split()
-            if(len(attribute < 2)):
+            if(len(attribute) < 2):
                 continue
-            if(len(attribute >= 2)):
+            if(len(attribute) >= 2):
                 for line in lines:
-                    if line.startswith(attribute[0]):
+                    if line.split() == attribute[0]:
                         lines.remove(line)
                 lines.append(c)
         for line in lines:
