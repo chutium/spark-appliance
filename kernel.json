@@ -8,12 +8,12 @@
     ],
     "codemirror_mode": "scala",
     "env": {
-        "SPARK_OPTS": "--master=SPARK_MASTER --driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info",
+        "SPARK_OPTS": "--master=${SPARK_MASTER} --driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info",
         "MAX_INTERPRETER_THREADS": "16",
         "CAPTURE_STANDARD_OUT": "true",
         "CAPTURE_STANDARD_ERR": "true",
         "SEND_EMPTY_OUTPUT": "false",
-        "SPARK_HOME": "/opt/spark-1.6.0-SNAPSHOT-bin-2.6.0",
-        "PYTHONPATH": "/opt/spark-1.6.0-SNAPSHOT-bin-2.6.0/python:/opt/spark-1.6.0-SNAPSHOT-bin-2.6.0/python/lib/py4j-0.9-src.zip"
+        "SPARK_HOME": "${SPARK_HOME}",
+        "PYTHONPATH": "${PYTHONPATH}"
      }
 }
