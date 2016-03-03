@@ -36,10 +36,10 @@ SenzaInfo:
         Description: "Start web-based notebook for spark"
         Default: ""
     - ZookeeperStackName:
-        Description: "Which ZooKeeper Stack should be used?"
+        Description: "ZooKeeper stack name or connection string, e.g. zk-stack or 192.168.9.10:2181 or localhost:65535"
         Default: ""
     - MasterStackName:
-        Description: "Spark Master stack name, e.g. spark-master"
+        Description: "Spark Master stack name or connection URL, e.g. spark-master or spark://127.0.0.1:7077"
         Default: ""
     - DefaultCores:
         Description: "Default number of cores to give to applications in Spark's standalone mode"
