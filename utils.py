@@ -51,7 +51,7 @@ def generate_zk_conn_str():
     stack_name = get_os_env('ZOOKEEPER_STACK_NAME')
     zknode_ips = []
 
-    if re.match(r"^[\w\+-_]+:\d{4,5}", stack_name): # match 192.168.9.10:1234 or localhost:65535
+    if re.match(r"^[\w\+-_]+:\d{4,5}", stack_name):  # match 192.168.9.10:1234 or localhost:65535
         return stack_name
 
     if region is not None:
@@ -94,7 +94,7 @@ def generate_master_uri():
                         break
                 if found:
                     break
-            if stack_name == "": # master node is not in an ELB
+            if stack_name == "":  # master node is not in an ELB
                 return ""
             else:
                 os.environ['MASTER_STACK_NAME'] = stack_name
