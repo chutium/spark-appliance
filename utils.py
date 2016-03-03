@@ -47,14 +47,19 @@ def get_instance_ips(elb, ec2, stack_name):
 
 def generate_zk_conn_str():
     global region
+    import re
+    stack_name = get_os_env('ZOOKEEPER_STACK_NAME')
     zknode_ips = []
+
+    if re.match(r"^[\w\+-_]+:\d{4,5}", stack_name):  # match 192.168.9.10:1234 or localhost:65535
+        return stack_name
 
     if region is not None:
         elb = boto3.client('elb', region_name=region)
         ec2 = boto3.client('ec2', region_name=region)
-        zknode_ips = get_instance_ips(elb, ec2, get_os_env('ZOOKEEPER_STACK_NAME'))
+        zknode_ips = get_instance_ips(elb, ec2, stack_name)
     else:
-        zknode_ips = [get_os_env('ZOOKEEPER_STACK_NAME')]
+        zknode_ips = [stack_name]
 
     zk_conn_str = ''
     for ip in zknode_ips:
@@ -68,13 +73,15 @@ def generate_master_uri():
     global private_ip
     global region
     from time import sleep
+    stack_name = get_os_env('MASTER_STACK_NAME')
     master_ips = []
+
+    if stack_name.startswith('spark://'):
+        return stack_name
 
     if region is not None:
         elb = boto3.client('elb', region_name=region)
         ec2 = boto3.client('ec2', region_name=region)
-
-        stack_name = get_os_env('MASTER_STACK_NAME')
 
         if stack_name == "":
             response = elb.describe_load_balancers()
@@ -87,7 +94,7 @@ def generate_master_uri():
                         break
                 if found:
                     break
-            if stack_name == "":
+            if stack_name == "":  # master node is not in an ELB
                 return ""
             else:
                 os.environ['MASTER_STACK_NAME'] = stack_name

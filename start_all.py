@@ -11,6 +11,10 @@ logging.basicConfig(level=getattr(logging, 'INFO', None))
 
 spark_dir = utils.get_os_env('SPARK_DIR')
 
+if utils.get_os_env('PYTHON_LIBS') != "":
+    python_libs = utils.get_os_env('PYTHON_LIBS').split(',')
+    subprocess.Popen(["pip3", "install", "--upgrade"] + python_libs)
+
 utils.set_ec2_identities()
 
 zk_conn_str = ""
@@ -62,7 +66,7 @@ if utils.get_os_env('EXT_CONF') != "":
         logging.error("ERROR: Failed to get external config " + ext_conf)
         logging.error("exception: " + str(e))
 
-    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as default, open('/tmp/' + file_name , "r") as conf:
+    with open(spark_dir + '/conf/spark-defaults.conf', "r+") as default, open('/tmp/' + file_name, "r") as conf:
         lines = default.read().splitlines()
         default.seek(0)
         default.truncate()
@@ -79,12 +83,8 @@ if utils.get_os_env('EXT_CONF') != "":
                         lines.remove(line)
                 lines.append(c)
         for line in lines:
-            default.write(line+ '\n')
+            default.write(line + '\n')
         default.close()
-
-if utils.get_os_env('PYTHON_LIBS') != "":
-    python_libs = utils.get_os_env('PYTHON_LIBS').split(',')
-    subprocess.Popen(["pip3", "install", "--upgrade"] + python_libs)
 
 if utils.get_os_env('DRIVER_MEMORY') != "":
     driver_memory = utils.get_os_env('DRIVER_MEMORY')
