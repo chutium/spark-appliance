@@ -127,13 +127,13 @@ def get_job_status(job_id):
     if job_id in job_watchers:
         status = job_watchers[job_id].poll()
         if status is None:
-            return "Still running...", 200
+            return {'job_id': job_id, 'status': 'running'}, 200
         elif status == 0:
-            return "Finished.", 201
+            return {'job_id': job_id, 'status': 'finished'}, 201
         else:
-            return "Failed!", 500
+            return {'job_id': job_id, 'status': 'failed'}, 500
     else:
-        return "ID ot found!", 404
+        return {'job_id': job_id, 'error': 'job id not found'}, 404
 
 
 def get_output_stream(proc):
