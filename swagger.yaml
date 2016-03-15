@@ -69,32 +69,27 @@ paths:
         - oauth2: ["{{oauth2_scope}}"]
       operationId: webapp.send_query
       parameters:
-        - file:
-          name: file
+        - name: file
           description: query file
-          in: body
-          type: string
+          in: formData
+          type: file
           required: true
-        - hive_vars:
-          name: hive_vars
+        - name: hive_vars
           description: whitespace-separated list of --hivevar parameters
           in: formData
           type: string
           required: false
-        - hive_confs:
-          name: hive_confs
+        - name: hive_confs
           description: whitespace-separated list of --hiveconf parameters
           in: formData
           type: string
           required: false
-        - username:
-          name: username
+        - name: username
           description: username to login
           in: formData
           type: string
           required: false
-        - password:
-          name: password
+        - name: password
           description: password to login
           in: formData
           type: string
@@ -111,26 +106,22 @@ paths:
         - oauth2: ["{{oauth2_scope}}"]
       operationId: webapp.submit_application
       parameters:
-        - file:
-          name: file
+        - name: file
           description: application file
           in: formData
-          type: string
+          type: file
           required: true
-        - main_class:
-          name: main_class
+        - name: main_class
           description: main class of JAR application
           in: formData
           type: string
           required: false
-        - job_args:
-          name: job_args
+        - name: job_args
           description: Arguments (whitespace-separated) for Spark App Jar or Python script
           in: formData
           type: string
           required: false
-        - job_settings:
-          name: job_settings
+        - name: job_settings
           description: Spark settings (whitespace-separated) for Spark App Jar or Python script
           in: formData
           type: string
@@ -147,8 +138,7 @@ paths:
         - oauth2: ["{{oauth2_scope}}"]
       operationId: webapp.get_job_status
       parameters:
-        - job_id:
-          name: job_id
+        - name: job_id
           description: ID of Spark application or Spark SQL query
           in: path
           type: string
@@ -169,8 +159,7 @@ paths:
         - oauth2: ["{{oauth2_scope}}"]
       operationId: webapp.get_job_output
       parameters:
-        - job_id:
-          name: job_id
+        - name: job_id
           description: ID of Spark application or Spark SQL query
           in: path
           type: string
