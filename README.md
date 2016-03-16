@@ -94,7 +94,7 @@ And try the Jupyter Notebook with URL ```http://localhost:8888/```
 | AuthURL      | AUTH_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 service URL |
 | TokenInfoURL | TOKENINFO_URL | "" | No | (Only needed when ```StartWebApp=true``` is set) TokenInfo service URL |
 | Oauth2Scope  | OAUTH2_SCOPE  | uid | No | (Only needed when ```StartWebApp=true``` is set) OAuth2 scope to access the WebApp |
-| ExternalConfig | EXT_CONF | "" | No | External config file on S3. Appended to spark-defaults.conf before startup. |
+| ExternalConfig | EXT_CONF | "" | No | External config file on S3. Appended to ```spark-defaults.conf``` before startup. |
 
 #### Deploying on single node
 
