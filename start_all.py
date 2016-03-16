@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+from boto3.s3.transfer import S3Transfer
 import boto3
 import logging
 import subprocess
@@ -31,40 +32,45 @@ if utils.get_os_env('HIVE_SITE_XML') != "":
     path = hive_site_xml[5:]
     bucket = path[:path.find('/')]
     file_key = path[path.find('/')+1:]
-    s3 = boto3.resource('s3')
+    client = boto3.client('s3', region_name=utils.get_region())
+    transfer = S3Transfer(client)
     try:
-        s3.meta.client.download_file(bucket, file_key, spark_dir + '/conf/hive-site.xml')
+        transfer.download_file(bucket, file_key, spark_dir + '/conf/hive-site.xml')
         logging.info("Got hive-site.xml from " + hive_site_xml)
-    except:
+    except Exception as e:
         logging.error("ERROR: Failed to get hive-site.xml from " + hive_site_xml)
+        logging.error("Exception: " + str(e))
 
 if utils.get_os_env('EXT_JARS') != "":
     ext_jars = utils.get_os_env('EXT_JARS').split(',')
-    s3 = boto3.resource('s3')
+    client = boto3.client('s3', region_name=utils.get_region())
+    transfer = S3Transfer(client)
     for jar in ext_jars:
         path = jar[5:]
         bucket = path[:path.find('/')]
         file_key = path[path.find('/')+1:]
         file_name = path[path.rfind('/')+1:]
         try:
-            s3.meta.client.download_file(bucket, file_key, spark_dir + '/auxlib/' + file_name)
+            transfer.download_file(bucket, file_key, spark_dir + '/auxlib/' + file_name)
             logging.info("Got external jar from " + jar)
-        except:
+        except Exception as e:
             logging.error("ERROR: Failed to get external jar " + jar)
+            logging.error("Exception: " + str(e))
 
 if utils.get_os_env('EXT_CONF') != "":
     ext_conf = utils.get_os_env('EXT_CONF')
-    s3 = boto3.resource('s3')
+    client = boto3.client('s3', region_name=utils.get_region())
+    transfer = S3Transfer(client)
     path = ext_conf[5:]
     bucket = path[:path.find('/')]
     file_key = path[path.find('/')+1:]
     file_name = path[path.rfind('/')+1:]
     try:
-        s3.meta.client.download_file(bucket, file_key, '/tmp/' + file_name)
+        transfer.download_file(bucket, file_key, '/tmp/' + file_name)
         logging.info("Got external config from " + ext_conf)
     except Exception as e:
         logging.error("ERROR: Failed to get external config " + ext_conf)
-        logging.error("exception: " + str(e))
+        logging.error("Exception: " + str(e))
 
     with open(spark_dir + '/conf/spark-defaults.conf', "r+") as default, open('/tmp/' + file_name, "r") as conf:
         lines = default.read().splitlines()

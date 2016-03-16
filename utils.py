@@ -35,6 +35,11 @@ def get_private_ip():
     return private_ip
 
 
+def get_region():
+    global region
+    return region
+
+
 def get_instance_ips(elb, ec2, stack_name):
     instance_ips = []
     response = elb.describe_instance_health(LoadBalancerName=stack_name)
